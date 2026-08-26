@@ -1,0 +1,337 @@
+// i18n — 키 기반 번역. 지금은 ko/en 만 있지만 나중에 언어를 더 넣을 걸 감안해
+// translations 오브젝트에 로케일만 추가하면 되는 구조로 만든다.
+export const translations = {
+  ko: {
+    'app.name': '두루',
+
+    'menu.file': '파일',
+    'menu.openFolder': '폴더 열기',
+    'menu.save': '저장',
+    'menu.closeTab': '닫기',
+    'menu.settings': '설정',
+    'menu.edit': '편집',
+    'menu.undo': '실행취소',
+    'menu.redo': '다시실행',
+    'menu.find': '찾기',
+
+    'status.ready': '준비됨',
+    'status.saving': '저장 중…',
+    'status.saved': '저장됨',
+    'status.openFolderFirst': '폴더를 먼저 열어주세요',
+    'status.newFileFailed': '새 문서 만들기 실패: {error}',
+    'status.rereadFailed': '다시 읽기 실패: {error}',
+    'status.noOpenDoc': '열린 문서가 없습니다',
+    'status.versionSaved': '버전 저장됨',
+    'status.versionSaveFailed': '버전 저장 실패',
+    'status.pasteFailed': '붙여넣기 실패 — 클립보드 접근 권한을 확인하세요',
+    'status.openFailed': '열기 실패: {error}',
+    'status.lastFolderFailed': '마지막 폴더를 열지 못했습니다',
+
+    'error.saveNoPermission': '저장 실패 — 이 파일에 쓸 권한이 없습니다.',
+    'error.saveNotFound': '저장 실패 — 파일이나 폴더를 찾을 수 없습니다.',
+    'error.saveNoSpace': '저장 실패 — 저장 공간이 부족합니다.',
+    'error.saveGeneric': '저장 실패 — 파일에 쓸 수 없습니다. 다시 시도해주세요.',
+    'error.nameExists': '이미 있는 이름입니다',
+
+    'sidebar.openFolder': '폴더 열기',
+    'sidebar.newFile': '＋ 새 문서',
+    'sidebar.newFileTitle': '새 문서 만들기',
+    'sidebar.openFolderHint': '폴더를 열어 .md 파일을 찾아보세요',
+
+    'tree.empty': '.md 파일이 없습니다',
+
+    'viewtoggle.doc': '문서',
+    'viewtoggle.raw': '원본',
+
+    'findbar.searchPlaceholder': '찾기',
+    'findbar.prev': '이전',
+    'findbar.next': '다음',
+    'findbar.replacePlaceholder': '바꾸기',
+    'findbar.replace': '바꾸기',
+    'findbar.replaceAll': '모두 바꾸기',
+    'findbar.close': '닫기',
+    'findbar.matchCount': '{n}개',
+    'findbar.noMatches': '없음',
+    'findbar.replacedCount': '{n}개 바꿈',
+
+    'emptyState.noOpenDoc': '열린 문서가 없습니다',
+    'emptyState.openFolder': '폴더 열기',
+
+    'git.noChanges': '바뀐 것 없음',
+    'git.changedFiles': '바뀐 문서 {n}개',
+    'git.changedFilesZero': '바뀐 문서 0개',
+    'git.docsOnlyNote': '문서만 저장합니다.',
+    'git.statusModified': '고침',
+    'git.statusCreated': '새로 만듦',
+    'git.statusDeleted': '지움',
+
+    'history.title': '기록',
+    'history.empty': '저장된 기록이 없습니다.',
+    'history.loadFailed': '기록을 불러오지 못했습니다.',
+
+    'diff.empty': '변경된 내용이 없습니다.',
+    'diff.whatChanged': '{name} — 무엇이 바뀌었나',
+    'diff.loadFailed': '변경 내용을 불러오지 못했습니다.',
+
+    'version.saveButton': '버전 저장',
+    'version.whatChanged': '무엇을 바꾸셨나요?',
+    'version.filesToSave': '저장할 문서 {n}개',
+    'version.defaultMessageSuffix': '수정',
+    'version.identityRequired': '버전을 저장하려면 이름이 필요합니다.\n설정 화면에서 이름과 메일을 입력해 주세요.',
+
+    'settings.modeLabel': '모드',
+    'settings.modeDocLabel': '문서',
+    'settings.modeDocDesc': '한 번에 한 문서씩 종이처럼 봅니다.',
+    'settings.modeStudioLabel': '작업실',
+    'settings.modeStudioDesc': '여러 문서를 오가며 작업합니다.',
+    'settings.themeLabel': '화면',
+    'settings.themeLight': '밝게',
+    'settings.themeDark': '어둡게',
+    'settings.themeSystem': '시스템 설정',
+    'settings.gitNameLabel': '버전 저장에 쓸 이름',
+    'settings.gitEmailLabel': '메일',
+    'settings.languageLabel': '언어',
+
+    'modal.save': '저장',
+    'modal.discard': '버리기',
+    'modal.cancel': '취소',
+    'modal.reread': '다시 읽기',
+    'modal.keep': '내 것 유지',
+    'modal.ok': '확인',
+    'modal.close': '닫기',
+
+    'confirm.unsavedChanges': '"{name}" 파일에 저장하지 않은 변경사항이 있습니다.',
+    'confirm.externalChange': '"{name}" 파일이 앱 밖에서 바뀌었습니다. 다시 읽을까요? 내 것을 유지할까요?',
+
+    'prompt.newFileName': '새 문서 이름을 입력하세요',
+    'prompt.newFilePlaceholder': '메모.md',
+    'prompt.linkUrl': '링크 URL을 입력하세요',
+
+    'onboarding.title': '두루',
+    'onboarding.subtitle': '어떻게 쓰실 건가요?',
+    'onboarding.docModeTitle': '문서 모드',
+    'onboarding.docModeDesc': '한 번에 한 문서씩, 종이처럼',
+    'onboarding.studioModeTitle': '작업실 모드',
+    'onboarding.studioModeDesc': '여러 문서를 오가며 작업',
+    'onboarding.hint': '나중에 설정에서 바꿀 수 있어요',
+
+    'date.today': '오늘 {time}',
+    'date.yesterday': '어제 {time}',
+    'date.daysAgo': '{n}일 전',
+
+    'table.cellEnterBlocked': '표 안에서는 줄을 바꿀 수 없습니다. 마크다운 표의 제약입니다.',
+    'table.headerRowBlocked': '머리행은 지울 수 없습니다. 다른 행에 커서를 두고 눌러보세요.',
+    'table.minColumns': '표에는 열이 하나 이상 있어야 합니다.',
+
+    'tabletoolbar.addRow': '아래에 행 추가',
+    'tabletoolbar.removeRow': '이 행 삭제 (머리행 제외)',
+    'tabletoolbar.addCol': '오른쪽에 열 추가',
+    'tabletoolbar.removeCol': '이 열 삭제',
+    'tabletoolbar.alignLeft': '왼쪽 정렬',
+    'tabletoolbar.alignCenter': '가운데 정렬',
+    'tabletoolbar.alignRight': '오른쪽 정렬',
+    'tabletoolbar.deleteTable': '표 삭제',
+    'tabletoolbar.addRowBtn': '＋행',
+    'tabletoolbar.removeRowBtn': '－행',
+    'tabletoolbar.addColBtn': '＋열',
+    'tabletoolbar.removeColBtn': '－열',
+
+    'toolbar.bodyText': '본문',
+    'toolbar.headingLevel': '제목 {n}',
+    'toolbar.codeBlock': '코드 블록',
+    'toolbar.boldTitle': '굵게 (Ctrl+B)',
+    'toolbar.italicTitle': '기울임 (Ctrl+I)',
+    'toolbar.underlineTitle': '밑줄 (Ctrl+U)',
+    'toolbar.strikeTitle': '취소선',
+    'toolbar.bulletListTitle': '글머리표 목록',
+    'toolbar.orderedListTitle': '번호 목록',
+    'toolbar.todoListTitle': '할 일 목록',
+    'toolbar.hrTitle': '수평선',
+    'toolbar.quoteTitle': '인용',
+    'toolbar.linkTitle': '링크',
+    'toolbar.inlineCodeTitle': '인라인 코드',
+    'toolbar.tableTitle': '표',
+    'toolbar.imageTitle': '이미지',
+
+    'image.needDocOpen': '먼저 폴더에서 문서를 열어야 이미지를 넣을 수 있습니다',
+    'image.addFailed': '이미지 추가 실패: {error}',
+    'image.notFound': '그림을 찾을 수 없습니다',
+
+    'common.loading': '불러오는 중…',
+  },
+  en: {
+    'app.name': 'Duru',
+
+    'menu.file': 'File',
+    'menu.openFolder': 'Open Folder',
+    'menu.save': 'Save',
+    'menu.closeTab': 'Close',
+    'menu.settings': 'Settings',
+    'menu.edit': 'Edit',
+    'menu.undo': 'Undo',
+    'menu.redo': 'Redo',
+    'menu.find': 'Find',
+
+    'status.ready': 'Ready',
+    'status.saving': 'Saving…',
+    'status.saved': 'Saved',
+    'status.openFolderFirst': 'Open a folder first',
+    'status.newFileFailed': 'Failed to create document: {error}',
+    'status.rereadFailed': 'Failed to reload: {error}',
+    'status.noOpenDoc': 'No document is open',
+    'status.versionSaved': 'Version saved',
+    'status.versionSaveFailed': 'Failed to save version',
+    'status.pasteFailed': 'Paste failed — check clipboard access permission',
+    'status.openFailed': 'Failed to open: {error}',
+    'status.lastFolderFailed': 'Couldn’t open the last folder',
+
+    'error.saveNoPermission': 'Save failed — you don’t have permission to write this file.',
+    'error.saveNotFound': 'Save failed — the file or folder can’t be found.',
+    'error.saveNoSpace': 'Save failed — not enough storage space.',
+    'error.saveGeneric': 'Save failed — couldn’t write the file. Please try again.',
+    'error.nameExists': 'That name already exists',
+
+    'sidebar.openFolder': 'Open Folder',
+    'sidebar.newFile': '+ New Document',
+    'sidebar.newFileTitle': 'Create a new document',
+    'sidebar.openFolderHint': 'Open a folder to find .md files',
+
+    'tree.empty': 'No .md files',
+
+    'viewtoggle.doc': 'Document',
+    'viewtoggle.raw': 'Source',
+
+    'findbar.searchPlaceholder': 'Find',
+    'findbar.prev': 'Prev',
+    'findbar.next': 'Next',
+    'findbar.replacePlaceholder': 'Replace',
+    'findbar.replace': 'Replace',
+    'findbar.replaceAll': 'Replace All',
+    'findbar.close': 'Close',
+    'findbar.matchCount': '{n}',
+    'findbar.noMatches': 'None',
+    'findbar.replacedCount': '{n} replaced',
+
+    'emptyState.noOpenDoc': 'No document is open',
+    'emptyState.openFolder': 'Open Folder',
+
+    'git.noChanges': 'No changes',
+    'git.changedFiles': '{n} changed files',
+    'git.changedFilesZero': '0 changed files',
+    'git.docsOnlyNote': 'Only documents are saved.',
+    'git.statusModified': 'Modified',
+    'git.statusCreated': 'Created',
+    'git.statusDeleted': 'Deleted',
+
+    'history.title': 'History',
+    'history.empty': 'No saved history.',
+    'history.loadFailed': 'Couldn’t load history.',
+
+    'diff.empty': 'No changes.',
+    'diff.whatChanged': '{name} — what changed',
+    'diff.loadFailed': 'Couldn’t load changes.',
+
+    'version.saveButton': 'Save Version',
+    'version.whatChanged': 'What did you change?',
+    'version.filesToSave': '{n} documents to save',
+    'version.defaultMessageSuffix': 'update',
+    'version.identityRequired': 'A name is needed to save a version.\nPlease enter a name and email in Settings.',
+
+    'settings.modeLabel': 'Mode',
+    'settings.modeDocLabel': 'Document',
+    'settings.modeDocDesc': 'View one document at a time, like paper.',
+    'settings.modeStudioLabel': 'Studio',
+    'settings.modeStudioDesc': 'Work across multiple documents.',
+    'settings.themeLabel': 'Appearance',
+    'settings.themeLight': 'Light',
+    'settings.themeDark': 'Dark',
+    'settings.themeSystem': 'System',
+    'settings.gitNameLabel': 'Name for saved versions',
+    'settings.gitEmailLabel': 'Email',
+    'settings.languageLabel': 'Language',
+
+    'modal.save': 'Save',
+    'modal.discard': 'Discard',
+    'modal.cancel': 'Cancel',
+    'modal.reread': 'Reload',
+    'modal.keep': 'Keep Mine',
+    'modal.ok': 'OK',
+    'modal.close': 'Close',
+
+    'confirm.unsavedChanges': '"{name}" has unsaved changes.',
+    'confirm.externalChange': '"{name}" was changed outside the app. Reload it? Or keep your version?',
+
+    'prompt.newFileName': 'Enter a name for the new document',
+    'prompt.newFilePlaceholder': 'Note.md',
+    'prompt.linkUrl': 'Enter a link URL',
+
+    'onboarding.title': 'Duru',
+    'onboarding.subtitle': 'How would you like to use it?',
+    'onboarding.docModeTitle': 'Document Mode',
+    'onboarding.docModeDesc': 'One document at a time, like paper',
+    'onboarding.studioModeTitle': 'Studio Mode',
+    'onboarding.studioModeDesc': 'Work across multiple documents',
+    'onboarding.hint': 'You can change this later in Settings',
+
+    'date.today': 'Today {time}',
+    'date.yesterday': 'Yesterday {time}',
+    'date.daysAgo': '{n} days ago',
+
+    'table.cellEnterBlocked': 'You can’t add a line break inside a table cell — a limitation of Markdown tables.',
+    'table.headerRowBlocked': 'The header row can’t be deleted. Place your cursor in another row and try again.',
+    'table.minColumns': 'A table must have at least one column.',
+
+    'tabletoolbar.addRow': 'Add row below',
+    'tabletoolbar.removeRow': 'Delete this row (except header)',
+    'tabletoolbar.addCol': 'Add column to the right',
+    'tabletoolbar.removeCol': 'Delete this column',
+    'tabletoolbar.alignLeft': 'Align left',
+    'tabletoolbar.alignCenter': 'Align center',
+    'tabletoolbar.alignRight': 'Align right',
+    'tabletoolbar.deleteTable': 'Delete table',
+    'tabletoolbar.addRowBtn': '+ Row',
+    'tabletoolbar.removeRowBtn': '− Row',
+    'tabletoolbar.addColBtn': '+ Col',
+    'tabletoolbar.removeColBtn': '− Col',
+
+    'toolbar.bodyText': 'Body Text',
+    'toolbar.headingLevel': 'Heading {n}',
+    'toolbar.codeBlock': 'Code Block',
+    'toolbar.boldTitle': 'Bold (Ctrl+B)',
+    'toolbar.italicTitle': 'Italic (Ctrl+I)',
+    'toolbar.underlineTitle': 'Underline (Ctrl+U)',
+    'toolbar.strikeTitle': 'Strikethrough',
+    'toolbar.bulletListTitle': 'Bullet List',
+    'toolbar.orderedListTitle': 'Numbered List',
+    'toolbar.todoListTitle': 'To-do List',
+    'toolbar.hrTitle': 'Horizontal Rule',
+    'toolbar.quoteTitle': 'Quote',
+    'toolbar.linkTitle': 'Link',
+    'toolbar.inlineCodeTitle': 'Inline Code',
+    'toolbar.tableTitle': 'Table',
+    'toolbar.imageTitle': 'Image',
+
+    'image.needDocOpen': 'Open a document from a folder first to insert images',
+    'image.addFailed': 'Failed to add image: {error}',
+    'image.notFound': 'Image not found',
+
+    'common.loading': 'Loading…',
+  },
+};
+
+let currentLocale = 'ko';
+
+export function setLocale(loc) {
+  currentLocale = translations[loc] ? loc : 'ko';
+}
+
+export function getLocale() {
+  return currentLocale;
+}
+
+// vars: {name: 'foo.md'} interpolates {name} placeholders in the string
+export function t(key, vars) {
+  let s = (translations[currentLocale] && translations[currentLocale][key]) ?? translations.ko[key] ?? key;
+  if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, v);
+  return s;
+}

@@ -1,0 +1,435 @@
+:root {
+  --paper: #ffffff;      /* 문서 배경 */
+  --canvas: #e9e5dc;     /* 문서 바깥 바탕 */
+  --ink: #2a2724;        /* 본문 글자 */
+  --ink-dim: #6b655c;    /* 흐린 글자 — 4.5:1 대비 확보 (작은 글씨 기준) */
+  --line: #d6d0c6;       /* 구분선·테두리 */
+  --chrome: #f4f1ea;     /* 툴바·패널 배경 */
+  --accent: #c2410c;     /* 강조 (선택·주요 버튼) */
+  --link: #1b6ca8;       /* 문서 안 링크 */
+  --link-hover: #12507c;
+  --raw-bg: #f4f1ea;     /* "원본 유지" 상자 배경 */
+  --raw-line: #c9c9c9;   /* "원본 유지" 상자 테두리 */
+  --ok: #1a7f37;
+  --bad: #c1121f;
+  --hover: #e9e3d6;
+  --shadow-1: rgba(0,0,0,.10);   /* 문서 그림자 */
+  --shadow-2: rgba(0,0,0,.12);   /* 메뉴/드롭다운 그림자 */
+  --shadow-3: rgba(0,0,0,.20);   /* 모달 그림자 */
+  --overlay: rgba(0,0,0,.35);    /* 모달/온보딩 뒤 어둡게 */
+  /* ── 버전 관리 (W4) — 변경 내용 보기 색. 대비는 계산해서 확보(≥4.5:1) ── */
+  --diff-add-bg: #e6f4ea; --diff-add-fg: #0f6b2c; /* 대비 ≈5.7:1 */
+  --diff-del-bg: #fbe7e7; --diff-del-fg: #a11212; /* 대비 ≈6.8:1 */
+}
+
+/* 어두운 화면 — 값은 여기서만 뒤집는다. 컴포넌트 CSS는 절대 색을 직접 쓰지 않는다. */
+#app[data-theme="dark"] {
+  --paper: #1e1c1a;
+  --canvas: #141312;
+  --ink: #e8e4dd;
+  --ink-dim: #9c948a;
+  --line: #3a3632;
+  --chrome: #26231f;
+  --accent: #e0812f;
+  --link: #6fb3e0;
+  --link-hover: #9ecdf0;
+  --raw-bg: #2a2622;
+  --raw-line: #58524a;
+  --ok: #4caf6b;
+  --bad: #ff7373;
+  --hover: #322e29;
+  --shadow-1: rgba(0,0,0,.45);
+  --shadow-2: rgba(0,0,0,.5);
+  --shadow-3: rgba(0,0,0,.6);
+  --overlay: rgba(0,0,0,.6);
+  --diff-add-bg: #1c3324; --diff-add-fg: #7fd99a; /* 대비 ≈7.9:1 */
+  --diff-del-bg: #3a1f1f; --diff-del-fg: #ff9c9c; /* 대비 ≈7.5:1 */
+}
+
+/* hidden 속성은 어떤 display 선언보다 우선한다.
+   #findbar 처럼 id 로 display:flex 를 주면 브라우저 기본
+   [hidden]{display:none} 를 특이도로 이겨버려 숨겨지지 않는다. */
+[hidden] { display: none !important; }
+
+/* ── 모드 (문서/작업실) — §0: 속성 하나 + CSS ────────────── */
+#app[data-mode="doc"] .studio-only { display: none; }
+#app[data-mode="studio"] .doc-only { display: none; }
+
+* { box-sizing: border-box; }
+
+html, body { height: 100%; margin: 0; }
+
+body {
+  font-family: 'Malgun Gothic', '맑은 고딕', system-ui, sans-serif;
+  color: var(--ink);
+  background: var(--canvas);
+}
+
+#app { display: flex; flex-direction: column; height: 100vh; color: var(--ink); background: var(--canvas); }
+
+/* ── 메뉴바 ───────────────────────────────── */
+#menubar {
+  display: flex; align-items: center; gap: 2px;
+  background: var(--chrome); border-bottom: 1px solid var(--line);
+  padding: 4px 8px; font-size: 13px; -webkit-app-region: drag;
+}
+.menu { position: relative; -webkit-app-region: no-drag; }
+.menu-btn {
+  background: none; border: none; padding: 4px 10px; cursor: pointer;
+  font-size: 13px; color: var(--ink); border-radius: 4px;
+}
+.menu-btn:hover { background: var(--hover); }
+.menu-list {
+  display: none; position: absolute; top: 100%; left: 0; z-index: 20;
+  background: var(--paper); border: 1px solid var(--line); border-radius: 6px;
+  box-shadow: 0 4px 12px var(--shadow-2); min-width: 200px; padding: 4px;
+}
+.menu.open .menu-list { display: block; }
+.menu-list button {
+  display: flex; justify-content: space-between; gap: 16px; width: 100%;
+  background: none; border: none; padding: 6px 10px; text-align: left;
+  cursor: pointer; font-size: 13px; color: var(--ink); border-radius: 4px;
+}
+.menu-list button:hover { background: var(--hover); }
+.menu-list .key { color: var(--ink-dim); font-size: 11px; }
+#status { margin-left: auto; font-size: 12px; color: var(--ink-dim); -webkit-app-region: no-drag; }
+#status.ok { color: var(--ok); }
+#status.bad { color: var(--bad); }
+
+/* ── 본문 레이아웃 ────────────────────────── */
+#body { flex: 1; display: flex; min-height: 0; }
+
+#sidebar {
+  flex-shrink: 0; background: var(--chrome);
+  border-right: 1px solid var(--line); display: flex; flex-direction: column;
+  overflow: hidden;
+}
+/* 차이 #1 — 문서 모드: 1단 평평한 목록(폭 190px, 폴더 없이 파일만 — refreshTree
+   에서 재귀적으로 펼침) / 작업실: 폴더 트리(폭 224px) */
+#app[data-mode="doc"] #sidebar { width: 190px; }
+#app[data-mode="studio"] #sidebar { width: 224px; }
+#app[data-mode="doc"] .tree-indent { display: none; }
+#sidebar-header { padding: 8px; border-bottom: 1px solid var(--line); }
+#sidebar-header button {
+  width: 100%; padding: 6px 8px; font-size: 12px; cursor: pointer;
+  background: var(--paper); border: 1px solid var(--line); border-radius: 4px; color: var(--ink);
+}
+#sidebar-header button + button { margin-top: 6px; }
+#tree { flex: 1; overflow: auto; padding: 6px 0; font-size: 13px; }
+.tree-node { user-select: none; }
+.tree-row {
+  display: flex; align-items: center; gap: 4px; padding: 3px 8px 3px 0;
+  cursor: pointer; white-space: nowrap; border-radius: 4px; margin: 0 4px;
+}
+.tree-row:hover { background: var(--hover); }
+.tree-row.active { background: var(--accent); color: var(--paper); }
+.tree-children { display: none; }
+.tree-node.open > .tree-children { display: block; }
+.tree-indent { display: inline-block; width: 14px; text-align: center; color: var(--ink-dim); }
+.tree-empty { padding: 12px; color: var(--ink-dim); font-size: 12px; }
+
+#main { flex: 1; display: flex; flex-direction: column; min-width: 0; background: var(--paper); }
+
+/* ── 탭바 ─────────────────────────────────── */
+#tabbar {
+  display: flex; overflow-x: auto; background: var(--chrome);
+  border-bottom: 1px solid var(--line); flex-shrink: 0;
+}
+.tab {
+  display: flex; align-items: center; gap: 6px; padding: 7px 10px;
+  border-right: 1px solid var(--line); font-size: 12px; cursor: pointer;
+  white-space: nowrap; color: var(--ink-dim); max-width: 220px;
+}
+.tab.active { background: var(--paper); color: var(--ink); }
+.tab .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+.tab .name { overflow: hidden; text-overflow: ellipsis; }
+.tab .close { color: var(--ink-dim); padding: 0 2px; border-radius: 3px; }
+.tab .close:hover { background: var(--line); color: var(--ink); }
+
+/* ── 툴바 (T1) ────────────────────────────── */
+#toolbar {
+  display: flex; align-items: center; gap: 2px; height: 52px; padding: 0 10px;
+  background: var(--chrome); border-bottom: 1px solid var(--line); flex-shrink: 0;
+}
+.tb-heading {
+  height: 30px; padding: 0 6px; border: 1px solid var(--line); border-radius: 4px;
+  background: var(--paper); color: var(--ink); font-size: 13px; cursor: pointer;
+}
+.tb-btn {
+  width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+  border: 1px solid transparent; border-radius: 4px; background: none; cursor: pointer;
+  color: var(--ink); font-size: 14px;
+}
+.tb-btn:hover { background: var(--hover); }
+.tb-btn.active { background: var(--hover); border-color: var(--line); color: var(--accent); }
+.tb-sep { width: 1px; height: 24px; background: var(--line); margin: 0 6px; flex-shrink: 0; }
+.modal-input {
+  display: block; width: 100%; margin-top: 8px; padding: 6px 8px;
+  border: 1px solid var(--line); border-radius: 4px; font-size: 13px; color: var(--ink);
+}
+
+/* ── 찾기 바 ──────────────────────────────── */
+#findbar {
+  display: flex; gap: 6px; align-items: center; padding: 6px 10px;
+  background: var(--chrome); border-bottom: 1px solid var(--line); font-size: 12px;
+}
+#findbar input {
+  padding: 4px 8px; border: 1px solid var(--line); border-radius: 4px; font-size: 12px;
+}
+#findbar button {
+  padding: 4px 8px; border: 1px solid var(--line); border-radius: 4px; font-size: 12px;
+  background: var(--paper); cursor: pointer; color: var(--ink);
+}
+#findbar button:hover { background: var(--hover); }
+
+/* ── 편집기 ───────────────────────────────── */
+#editor-wrap { flex: 1; overflow: auto; position: relative; }
+#editor { margin: 0 auto; padding: 40px 48px; background: var(--paper); min-height: 100%; }
+/* 차이 #3 — 문서 모드: 회색 바탕 위 흰 종이(그림자, 폭 660px) / 작업실: 배경 없이 전체 폭 */
+#app[data-mode="doc"] #editor-wrap { background: var(--canvas); padding: 32px 0; }
+#app[data-mode="doc"] #editor { max-width: 660px; box-shadow: 0 2px 16px var(--shadow-1); }
+#app[data-mode="studio"] #editor-wrap { background: var(--paper); padding: 0; }
+#app[data-mode="studio"] #editor { max-width: none; box-shadow: none; }
+.ProseMirror {
+  outline: none;
+  font-family: 'Malgun Gothic', '맑은 고딕', 'Segoe UI', system-ui, sans-serif;
+  font-size: 16px; line-height: 1.8; color: var(--ink);
+}
+.ProseMirror > *:first-child { margin-top: 0; }
+.ProseMirror p { margin: 0 0 1em; }
+.ProseMirror h1, .ProseMirror h2, .ProseMirror h3, .ProseMirror h4, .ProseMirror h5, .ProseMirror h6 {
+  font-weight: 700; color: var(--ink);
+}
+.ProseMirror h1 { font-size: 2em; margin: 1.4em 0 .6em; }
+.ProseMirror h2 { font-size: 1.5em; margin: 1.3em 0 .5em; }
+.ProseMirror h3 { font-size: 1.2em; font-weight: 600; margin: 1.2em 0 .4em; }
+.ProseMirror h4 { font-size: 1.05em; font-weight: 600; margin: 1.1em 0 .4em; }
+
+.ProseMirror ul, .ProseMirror ol { margin: 0 0 1em; padding-left: 1.6em; }
+.ProseMirror li { margin: .25em 0; }
+/* 목록 항목은 nodeView(listItemView)가 항상 내용을 .li-content 로 감싼다 —
+   할 일 목록 체크박스를 텍스트와 나란히 두기 위해서다(중첩 목록도 그 안에 온다). */
+.ProseMirror li > .li-content > ul, .ProseMirror li > .li-content > ol { margin: .25em 0 0; }
+/* align-items: center 는 쓰면 안 된다 — 하위 목록이 붙은 항목은 .li-content 가
+   문단+중첩 <ul> 을 통째로 담아서, 전체 블록 높이 기준으로 가운데 맞춰지는 바람에
+   체크박스가 첫 줄이 아니라 엉뚱한 곳(하위 목록 옆)으로 밀려났다. flex-start +
+   줄높이(line-height 1.8)에 맞춘 margin-top 으로 첫 줄에만 맞춘다. */
+.ProseMirror li[data-checked] { list-style: none; margin-left: -1.4em; display: flex; align-items: flex-start; gap: .5em; }
+.ProseMirror li[data-checked] > .li-checkbox {
+  appearance: none; margin: .4em 0 0; width: 1em; height: 1em; flex-shrink: 0;
+  border: 2px solid var(--ink-dim); border-radius: 3px; background: var(--paper); cursor: pointer;
+}
+.ProseMirror li[data-checked] > .li-checkbox:checked { background: var(--accent); border-color: var(--accent); }
+.ProseMirror li[data-checked] > .li-content { flex: 1; min-width: 0; }
+.ProseMirror li[data-checked="true"] > .li-content { color: var(--ink-dim); text-decoration: line-through; }
+
+/* 링크는 규칙이 없으면 브라우저 기본 남색(#0000ee)이 되어
+   어두운 종이 위에서 안 보인다. 테마별로 지정한다. */
+.ProseMirror a { color: var(--link); text-decoration: underline; text-underline-offset: 2px; }
+.ProseMirror a:hover { color: var(--link-hover); }
+
+/* 인라인 코드 — 코드블록(pre) 안의 code 는 제외한다 */
+.ProseMirror :not(pre) > code {
+  font-family: Consolas, 'D2Coding', monospace; font-size: .88em;
+  background: var(--chrome); border: 1px solid var(--line); border-radius: 3px;
+  padding: .1em .35em;
+}
+
+.ProseMirror table { border-collapse: collapse; margin: 0 0 1em; }
+.ProseMirror tr:first-child td { background: var(--chrome); font-weight: 600; }
+.ProseMirror td { border: 1px solid var(--line); padding: 6px 10px; }
+
+/* ── 표 도구막대 (T1 §2.3) — coordsAtPos 로 표 바로 위에 붙는다 ── */
+#table-toolbar {
+  position: absolute; z-index: 5; display: flex; align-items: center; gap: 2px;
+  padding: 3px; background: var(--chrome); border: 1px solid var(--line);
+  border-radius: 6px; box-shadow: 0 2px 8px var(--shadow-2);
+}
+.table-tb-btn { font-size: 12px; }
+.table-tb-btn:disabled { opacity: .35; cursor: default; }
+.table-tb-btn:disabled:hover { background: none; }
+
+/* ── 표 크기 고르기 그리드 (T1 §2.1) ─────────────────────── */
+.tb-table-picker {
+  position: absolute; z-index: 20; top: 100%; left: 0; margin-top: 4px;
+  background: var(--paper); border: 1px solid var(--line); border-radius: 6px;
+  box-shadow: 0 4px 12px var(--shadow-2); padding: 10px;
+}
+.tb-grid { display: grid; grid-template-columns: repeat(8, 16px); gap: 2px; }
+.tb-grid-cell { width: 16px; height: 16px; border: 1px solid var(--line); background: var(--paper); }
+.tb-grid-cell.hi { background: var(--accent); border-color: var(--accent); }
+.tb-grid-label { margin-top: 6px; font-size: 12px; color: var(--ink-dim); text-align: center; }
+.ProseMirror pre {
+  background: var(--chrome); padding: 10px 12px; border-radius: 4px; overflow: auto;
+  font-family: Consolas, monospace; font-size: 13px; margin: 0 0 1em;
+}
+.ProseMirror blockquote {
+  border-left: 3px solid var(--line); margin: 0 0 1em; padding-left: 12px; color: var(--ink-dim);
+}
+.ProseMirror hr { border: none; border-top: 1px solid var(--line); margin: 1.5em 0; }
+.raw-block {
+  background: var(--raw-bg); border: 1px dashed var(--raw-line); border-radius: 4px;
+  padding: 8px 10px; margin: 10px 0; font-family: Consolas, monospace; font-size: 12px;
+  white-space: pre-wrap; color: var(--ink-dim); position: relative;
+}
+.raw-block::before {
+  content: '원본 유지'; position: absolute; top: -8px; left: 8px; background: var(--paper);
+  padding: 0 4px; font-size: 10px; color: var(--ink-dim);
+}
+/* ── 이미지 (T2 §3.3) ─────────────────────── */
+.pm-image { display: inline-block; max-width: 100%; vertical-align: bottom; line-height: 0; }
+.pm-image img { display: block; max-width: 100%; height: auto; }
+.pm-image.ProseMirror-selectednode { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+.pm-image-placeholder {
+  display: inline-flex; flex-direction: column; align-items: center; gap: 3px;
+  min-width: 160px; padding: 16px 12px; background: var(--raw-bg); border: 1px dashed var(--raw-line);
+  border-radius: 4px; color: var(--ink-dim); font-size: 12px; line-height: 1.5; text-align: center;
+}
+.pm-image-placeholder-name { font-family: Consolas, 'D2Coding', monospace; word-break: break-all; }
+.raw-inline {
+  background: var(--raw-bg); border: 1px dashed var(--raw-line); border-radius: 3px;
+  padding: 0 4px; font-family: Consolas, monospace; font-size: 12px; color: var(--ink-dim);
+}
+
+/* ── 빈 화면 ──────────────────────────────── */
+#empty-state {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  color: var(--ink-dim); font-size: 14px; flex-direction: column; gap: 12px;
+}
+#empty-state button {
+  padding: 8px 16px; border: 1px solid var(--line); border-radius: 6px;
+  background: var(--paper); cursor: pointer; color: var(--ink);
+}
+
+/* ── 모달 ─────────────────────────────────── */
+#modal-overlay {
+  position: fixed; inset: 0; background: var(--overlay);
+  display: flex; align-items: center; justify-content: center; z-index: 100;
+}
+#modal {
+  background: var(--paper); border-radius: 8px; padding: 20px; width: 360px;
+  box-shadow: 0 10px 30px var(--shadow-3);
+}
+#modal-text { margin: 0 0 16px; font-size: 13px; line-height: 1.6; color: var(--ink); }
+#modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+#modal-actions button {
+  padding: 6px 14px; border: 1px solid var(--line); border-radius: 4px;
+  background: var(--chrome); cursor: pointer; font-size: 12px; color: var(--ink);
+}
+#modal-actions button.primary { background: var(--accent); color: var(--paper); border-color: var(--accent); }
+
+/* ── 설정 화면 (모달 안에 그려 넣는 라디오 그룹) ─────────── */
+.settings-group { margin: 0 0 16px; }
+.settings-group:last-child { margin-bottom: 0; }
+.settings-group-label { font-size: 12px; font-weight: 600; color: var(--ink); margin: 0 0 6px; }
+.settings-options { display: flex; gap: 14px; }
+.settings-options label { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--ink); cursor: pointer; }
+.settings-desc { margin: 6px 0 0; font-size: 11px; color: var(--ink-dim); }
+
+/* ── [문서] [원본] 전환 (차이 #4, 작업실 전용) ────────────── */
+#viewtoggle { display: flex; gap: 2px; padding: 4px 10px 0; background: var(--chrome); }
+#viewtoggle button {
+  padding: 4px 10px; border: 1px solid transparent; border-radius: 4px 4px 0 0;
+  background: none; cursor: pointer; font-size: 12px; color: var(--ink-dim);
+}
+#viewtoggle button.active { background: var(--paper); color: var(--ink); border-color: var(--line); border-bottom-color: var(--paper); }
+
+/* ── 원본(raw) 보기 ───────────────────────── */
+#raw-view {
+  flex: 1; margin: 0; overflow: auto; padding: 24px 32px; background: var(--paper);
+  color: var(--ink); font-family: Consolas, 'D2Coding', monospace; font-size: 13px;
+  white-space: pre-wrap; word-break: break-word;
+}
+
+/* ── 첫 실행 화면 ─────────────────────────── */
+#onboarding {
+  position: fixed; inset: 0; z-index: 200; background: var(--canvas);
+  display: flex; align-items: center; justify-content: center;
+}
+#onboarding-inner { text-align: center; }
+#onboarding-inner h1 { font-size: 28px; margin: 0 0 4px; color: var(--ink); }
+#onboarding-inner > p { margin: 0 0 28px; color: var(--ink-dim); font-size: 14px; }
+#onboarding-cards { display: flex; gap: 20px; }
+.onboarding-card {
+  width: 200px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 8px;
+  background: var(--paper); border: 1px solid var(--line); border-radius: 10px; cursor: pointer;
+  box-shadow: 0 4px 16px var(--shadow-1);
+}
+.onboarding-card:hover { border-color: var(--accent); }
+.onboarding-card b { font-size: 14px; color: var(--ink); }
+.onboarding-card span { font-size: 12px; color: var(--ink-dim); }
+.onboarding-preview { width: 100%; height: 100px; border-radius: 6px; border: 1px solid var(--line); position: relative; }
+.onboarding-preview-doc { background: var(--canvas); }
+.onboarding-preview-doc::after {
+  content: ''; position: absolute; inset: 12px 40px; background: var(--paper); border: 1px solid var(--line); border-radius: 2px;
+}
+.onboarding-preview-studio { background: var(--paper); }
+.onboarding-preview-studio::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 28%; background: var(--chrome); border-right: 1px solid var(--line);
+}
+.onboarding-preview-studio::after {
+  content: ''; position: absolute; left: 28%; right: 0; top: 0; height: 18px; background: var(--chrome); border-bottom: 1px solid var(--line);
+}
+#onboarding-hint { margin: 20px 0 0; font-size: 12px; color: var(--ink-dim); }
+
+/* ── 하단 상태바 — 버전 관리 (W4, §2) ─────────────────────
+   저장소가 아니면 통째로 hidden — 문서/작업실 두 모드에서 같은 자리, 같은 모양. */
+#versionbar {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--chrome); border-top: 1px solid var(--line);
+  padding: 5px 10px; font-size: 12px; flex-shrink: 0;
+}
+#version-status { color: var(--ink-dim); }
+#version-status.ok { color: var(--ok); }
+#version-status.bad { color: var(--bad); }
+#versionbar > button, #versionbar #changed-btn {
+  padding: 4px 10px; border: 1px solid var(--line); border-radius: 4px;
+  background: var(--paper); cursor: pointer; font-size: 12px; color: var(--ink);
+}
+#versionbar > button:hover, #versionbar #changed-btn:hover { background: var(--hover); }
+#versionbar > button.primary { background: var(--accent); color: var(--paper); border-color: var(--accent); margin-left: auto; }
+#history-btn { margin-left: auto; }
+#save-version-btn:disabled { opacity: .45; cursor: default; }
+#changed-btn.dim { color: var(--ink-dim); background: none; border-color: transparent; cursor: default; }
+#changed-wrap { position: relative; }
+#changed-popover {
+  position: absolute; bottom: 100%; left: 0; margin-bottom: 6px; z-index: 20;
+  min-width: 240px; background: var(--paper); border: 1px solid var(--line); border-radius: 6px;
+  box-shadow: 0 4px 12px var(--shadow-2); padding: 6px;
+}
+.changed-row {
+  display: flex; justify-content: space-between; gap: 12px; padding: 5px 8px;
+  border-radius: 4px; cursor: pointer; font-size: 12px; color: var(--ink);
+}
+.changed-row:hover { background: var(--hover); }
+.changed-row .status { color: var(--ink-dim); flex-shrink: 0; }
+.changed-note { margin: 6px 2px 0; font-size: 11px; color: var(--ink-dim); }
+
+/* ── 변경 내용 보기 (G2) · 기록 (G4) — 넓은 모달 ──────────── */
+#modal.wide { width: 640px; max-width: calc(100vw - 40px); }
+.modal-title { font-size: 13px; font-weight: 600; margin: 0 0 10px; color: var(--ink); }
+.diff-view {
+  max-height: 50vh; overflow: auto; border: 1px solid var(--line); border-radius: 4px;
+  font-family: Consolas, 'D2Coding', monospace; font-size: 12px;
+}
+.diff-row { display: flex; }
+.diff-ln {
+  flex-shrink: 0; width: 40px; text-align: right; padding: 1px 6px;
+  color: var(--ink-dim); user-select: none; box-sizing: border-box;
+}
+.diff-mark { flex-shrink: 0; width: 16px; text-align: center; user-select: none; }
+.diff-text { flex: 1; white-space: pre-wrap; word-break: break-word; padding: 1px 4px 1px 0; }
+.diff-row.diff-add { background: var(--diff-add-bg); color: var(--diff-add-fg); }
+.diff-row.diff-del { background: var(--diff-del-bg); color: var(--diff-del-fg); }
+.diff-row.diff-ctx { color: var(--ink); }
+.diff-sep { text-align: center; color: var(--ink-dim); padding: 2px 0; }
+
+/* ── 기록 목록 (G4) ───────────────────────────────────── */
+.history-list { max-height: 50vh; overflow: auto; }
+.history-row {
+  display: flex; gap: 12px; padding: 8px 6px; border-bottom: 1px solid var(--line);
+  cursor: pointer; font-size: 12px; color: var(--ink);
+}
+.history-row:hover { background: var(--hover); }
+.history-row .when { flex-shrink: 0; width: 90px; color: var(--ink-dim); }
+.history-row .subject { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

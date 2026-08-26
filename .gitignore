@@ -1,0 +1,29 @@
+*.out.md
+dist/
+node_modules/
+out1.md
+out2.md
+pm-out.md
+src-tauri/target/
+target/
+
+# 개인 실사용 테스트용 — 로컬에만 둔다 (공개 저장소에는 안 올림)
+sandbox.md
+assets/
+
+# 회귀 검사 시험지 5벌 + 검사 스크립트 — npm run check 가 쓰는 로컬 도구.
+# 공개 저장소는 앱 코드만 담는다 (README 에서 별도로 설명).
+duru-torture.md
+full-syntax.md
+guide-check.md
+word-habits.md
+beyond-guide.md
+check-loss.js
+syntax-diff.js
+tier-check.js
+verify-week1.js
+experiment.js
+experiment2.js
+norm-diff.js
+paste-check.js
+probe.js

@@ -1,0 +1,36 @@
+{
+  "name": "duru",
+  "version": "0.1.0",
+  "description": "워드처럼 편집했는데 저장은 깨끗한 마크다운 — 로컬 우선 Document IDE",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "tauri": "tauri",
+    "check": "node experiment2.js && node check-loss.js && node syntax-diff.js full-syntax.md && node syntax-diff.js guide-check.md && node norm-diff.js beyond-guide.md && node verify-week1.js && node tier-check.js"
+  },
+  "keywords": ["markdown", "editor", "tauri", "wysiwyg"],
+  "author": "knox9014",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "type": "module",
+  "dependencies": {
+    "@tauri-apps/api": "^2.11.1",
+    "@tauri-apps/plugin-dialog": "^2.7.2",
+    "prosemirror-commands": "^1.7.2",
+    "prosemirror-history": "^1.5.0",
+    "prosemirror-keymap": "^1.2.3",
+    "prosemirror-model": "^1.25.11",
+    "prosemirror-schema-list": "^1.5.1",
+    "prosemirror-state": "^1.4.4",
+    "prosemirror-view": "^1.42.2",
+    "remark-frontmatter": "^5.0.0",
+    "remark-gfm": "^4.0.1",
+    "remark-parse": "^11.0.0",
+    "remark-stringify": "^11.0.0",
+    "unified": "^11.0.5"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.11.4",
+    "vite": "^8.2.2"
+  }
+}
