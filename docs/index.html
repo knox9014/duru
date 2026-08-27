@@ -101,6 +101,8 @@
   .cta-row { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
   .btn { display: inline-flex; align-items: center; gap: 10px; background: var(--ink); color: #f2ede1; padding: 16px 32px; font-size: clamp(15px, 1.2vw, 18px); letter-spacing: .03em; min-height: 52px; }
   .btn:hover { background: #16130f; color: #fff; }
+  .btn-line { display: inline-flex; align-items: center; gap: 10px; border: 1px solid #b9b0a0; color: var(--ink); padding: 15px 28px; font-size: clamp(15px, 1.2vw, 18px); min-height: 52px; }
+  .btn-line:hover { border-color: var(--ink); color: var(--ink); background: rgba(42,39,36,.04); }
   .seal { width: clamp(54px, 7vw, 96px); aspect-ratio: 1; background: var(--accent); transform: rotate(-4deg); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .seal span { writing-mode: vertical-rl; font-family: 'Song Myung', 'Batang', serif; font-synthesis-weight: none; font-size: clamp(17px, 2.4vw, 30px); font-weight: 800; color: #f6ece1; letter-spacing: .15em; }
 
@@ -213,13 +215,17 @@
       </p>
 
       <div class="cta-row">
-        <a class="btn" href="https://github.com/knox9014/duru">
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.1.68-.22.68-.49l-.01-1.72c-2.78.62-3.37-1.37-3.37-1.37-.46-1.19-1.11-1.5-1.11-1.5-.91-.64.07-.63.07-.63 1 .07 1.53 1.06 1.53 1.06.89 1.57 2.34 1.12 2.91.86.09-.66.35-1.12.63-1.38-2.22-.26-4.56-1.14-4.56-5.06 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.71 0 0 .84-.28 2.75 1.05a9.3 9.3 0 0 1 5 0c1.91-1.33 2.75-1.05 2.75-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.63 1.03 2.75 0 3.93-2.34 4.8-4.57 5.05.36.32.68.94.68 1.9l-.01 2.82c0 .27.18.6.69.49A10.06 10.06 0 0 0 22 12.25C22 6.58 17.52 2 12 2z"/></svg>
-          <span data-lang="ko">저장소 보기</span><span data-lang="en">View the repository</span>
+        <a class="btn" href="https://github.com/knox9014/duru/releases/latest">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 11l5 5 5-5M4 20h16"></path></svg>
+          <span data-lang="ko">Windows용 내려받기</span><span data-lang="en">Download for Windows</span>
         </a>
-        <span class="note sub" style="margin: 0;">
-          <span data-lang="ko">Windows · 소스에서 직접 빌드</span>
-          <span data-lang="en">Windows · build from source</span>
+        <a class="btn-line" href="https://github.com/knox9014/duru">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.1.68-.22.68-.49l-.01-1.72c-2.78.62-3.37-1.37-3.37-1.37-.46-1.19-1.11-1.5-1.11-1.5-.91-.64.07-.63.07-.63 1 .07 1.53 1.06 1.53 1.06.89 1.57 2.34 1.12 2.91.86.09-.66.35-1.12.63-1.38-2.22-.26-4.56-1.14-4.56-5.06 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.71 0 0 .84-.28 2.75 1.05a9.3 9.3 0 0 1 5 0c1.91-1.33 2.75-1.05 2.75-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.63 1.03 2.75 0 3.93-2.34 4.8-4.57 5.05.36.32.68.94.68 1.9l-.01 2.82c0 .27.18.6.69.49A10.06 10.06 0 0 0 22 12.25C22 6.58 17.52 2 12 2z"/></svg>
+          <span data-lang="ko">소스 보기</span><span data-lang="en">View the source</span>
+        </a>
+        <span class="note sub" style="margin: 0; width: 100%;">
+          <span data-lang="ko">Windows 10/11 · v0.1.0 · 서명 안 된 설치 파일이라 SmartScreen 경고가 뜹니다</span>
+          <span data-lang="en">Windows 10/11 · v0.1.0 · unsigned installer — SmartScreen will warn</span>
         </span>
       </div>
     </div>

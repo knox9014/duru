@@ -88,7 +88,11 @@ a repository for you.**
 
 ## Running it
 
-> There's no installer yet. You'll need to build it.
+**[Download for Windows →](https://github.com/knox9014/duru/releases/latest)** (v0.1.0)
+
+> The installer is unsigned, so Windows SmartScreen will warn. Choose **More info → Run anyway**.
+
+### Building it yourself
 
 You'll need [Node.js](https://nodejs.org) 20.19+ (or 22.12+), [Rust](https://rustup.rs) 1.77+, and a system
 `git` if you want the version features.

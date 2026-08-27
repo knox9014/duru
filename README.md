@@ -84,7 +84,11 @@ Markdown Guide(Basic + Extended + Hacks) **65개 항목 전부**를 실제 변�
 
 ## 실행하기
 
-> 아직 설치 파일은 배포 전이다. 직접 빌드해야 한다.
+**[Windows용 설치 파일 내려받기 →](https://github.com/knox9014/duru/releases/latest)** (v0.1.0)
+
+> 코드 서명 인증서가 없어서 Windows SmartScreen 경고가 뜬다. **추가 정보 → 실행**을 눌러야 설치된다.
+
+### 직접 빌드하려면
 
 필요한 것 — [Node.js](https://nodejs.org) 20.19+ (또는 22.12+), [Rust](https://rustup.rs) 1.77+, 그리고
 버전 관리 기능을 쓰려면 시스템에 `git`.
