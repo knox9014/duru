@@ -8,6 +8,8 @@
 
 A local-first Markdown document editor · Tauri 2
 
+**[Visit the site →](https://knox9014.github.io/duru/)**
+
 [한국어](README.md) · [Full syntax coverage table](FEATURE_MAP.md) · [Build log](#build-log)
 
 </div>

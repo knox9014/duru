@@ -8,6 +8,8 @@
 
 로컬 우선 마크다운 문서 편집기 · Tauri 2
 
+**[소개 사이트 →](https://knox9014.github.io/duru/)**
+
 [English](README.en.md) · [지원 문법 전체 대조표](FEATURE_MAP.md) · [개발 기록](#개발-기록)
 
 </div>
