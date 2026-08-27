@@ -85,7 +85,7 @@ Markdown Guide(Basic + Extended + Hacks) **65개 항목 전부**를 실제 변�
 
 ## 실행하기
 
-**[Windows용 설치 파일 내려받기 →](https://github.com/knox9014/duru/releases/latest)** (v0.2.0)
+**[Windows용 설치 파일 내려받기 →](https://github.com/knox9014/duru/releases/latest/download/duru-setup-x64.exe)** (v0.2.0) · [모든 릴리스](https://github.com/knox9014/duru/releases)
 
 > 코드 서명 인증서가 없어서 Windows SmartScreen 경고가 뜬다. **추가 정보 → 실행**을 눌러야 설치된다.
 

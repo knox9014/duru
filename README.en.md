@@ -89,7 +89,7 @@ a repository for you.**
 
 ## Running it
 
-**[Download for Windows →](https://github.com/knox9014/duru/releases/latest)** (v0.2.0)
+**[Download for Windows →](https://github.com/knox9014/duru/releases/latest/download/duru-setup-x64.exe)** (v0.2.0) · [All releases](https://github.com/knox9014/duru/releases)
 
 > The installer is unsigned, so Windows SmartScreen will warn. Choose **More info → Run anyway**.
 
