@@ -1,5 +1,5 @@
 [package]
-name = "app"
+name = "duru"
 version = "0.1.0"
 description = "두루 — 워드처럼 편집했는데 저장은 깨끗한 마크다운"
 authors = ["knox9014"]

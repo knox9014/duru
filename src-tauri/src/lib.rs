@@ -249,22 +249,25 @@ struct GitStatusResult {
 #[tauri::command]
 fn git_status(folder: String) -> Result<GitStatusResult, String> {
     let start = Instant::now();
-    let (ok, stdout, stderr) = git_output(
-        &folder,
-        &["-c", "core.quotepath=false", "status", "--porcelain", "--", "*.md", "assets/"],
-    )?;
+    // -z 로 받는다. 기본 출력은 이름에 띄어쓰기가 있으면 경로를 따옴표로 감싸는데,
+    // 그 따옴표째 경로로 diff 를 돌리면 아무것도 못 찾아 "변경된 내용이 없습니다" 가 됐다.
+    // -z 는 NUL 로 끊고 따옴표를 붙이지 않는다 (그래서 core.quotepath 도 필요 없다).
+    let (ok, stdout, stderr) =
+        git_output(&folder, &["status", "--porcelain", "-z", "--", "*.md", "assets/"])?;
     if !ok {
         return Err(stderr);
     }
     let mut files = vec![];
-    for line in stdout.lines() {
-        if line.len() < 4 {
+    let mut entries = stdout.split('\0').filter(|s| !s.is_empty());
+    while let Some(entry) = entries.next() {
+        if entry.len() < 4 {
             continue;
         }
-        let xy = &line[0..2];
-        let mut rel = line[3..].to_string();
-        if let Some(idx) = rel.find(" -> ") {
-            rel = rel[idx + 4..].to_string(); // 이름 바꾸기는 새 이름만 보여준다
+        let xy = &entry[0..2];
+        let rel = entry[3..].to_string();
+        // 이름 바꾸기/복사는 예전 이름이 바로 다음 항목으로 따로 온다 — 새 이름만 쓰고 건너뛴다
+        if xy.contains('R') || xy.contains('C') {
+            entries.next();
         }
         let status = if xy.contains('?') || xy.contains('A') {
             "created"
@@ -543,8 +546,31 @@ mod tests {
 
         let log2 = git_log_file(folder.clone(), md_path).unwrap();
         assert_eq!(log2.len(), 2);
-        let show = git_show_file(folder, log2[0].hash.clone(), md.to_string_lossy().to_string()).unwrap();
+        let show =
+            git_show_file(folder.clone(), log2[0].hash.clone(), md.to_string_lossy().to_string())
+                .unwrap();
         assert!(show.iter().any(|l| l.kind == "add" && l.text == "둘째 줄"));
+
+        // 이름에 띄어쓰기가 있는 문서 — git status 가 경로를 따옴표로 감싸 내보내던 탓에
+        // 그 경로로 diff 를 돌리면 "변경된 내용이 없습니다" 가 나왔다. 실사용에서 잡힌 버그다.
+        let spaced = tmp.join("제품 기획서.md");
+        fs::write(&spaced, "# 기획서\n\n첫 줄\n").unwrap();
+        git_save_version(folder.clone(), "셋째 버전".into()).unwrap();
+        fs::write(&spaced, "# 기획서\n\n첫 줄\n덧붙인 줄\n").unwrap();
+
+        let status3 = git_status(folder.clone()).unwrap();
+        let changed = status3
+            .files
+            .iter()
+            .find(|f| f.path.ends_with("제품 기획서.md"))
+            .expect("띄어쓰기 있는 문서도 바뀐 목록에 나와야 한다");
+        assert!(!changed.path.contains('"'), "경로에 따옴표가 섞이면 안 된다: {}", changed.path);
+
+        let diff_spaced = git_diff_file(folder.clone(), changed.path.clone()).unwrap();
+        assert!(
+            diff_spaced.iter().any(|l| l.kind == "add" && l.text == "덧붙인 줄"),
+            "바뀐 목록에서 받은 경로로 비교가 되어야 한다"
+        );
 
         fs::remove_dir_all(&tmp).ok();
     }

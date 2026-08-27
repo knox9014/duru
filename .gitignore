@@ -27,3 +27,6 @@ experiment2.js
 norm-diff.js
 paste-check.js
 probe.js
+
+# Claude Code 개발 서버 설정 — 로컬 도구용
+.claude/
