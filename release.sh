@@ -35,7 +35,14 @@ cd "$(dirname "$0")"
 [[ -z "$(git status --porcelain)" ]] || die "커밋 안 된 변경이 있습니다. 먼저 정리하세요."
 
 CUR=$(node -p "require('./package.json').version")
+
+# 태그는 gh release create 가 GitHub 쪽에 만들기 때문에 로컬엔 없을 수 있다.
+# 로컬만 보면 이미 낸 버전을 또 내려다 빌드를 몇 분 돌린 뒤에야 실패한다.
+git fetch --tags -q origin 2>/dev/null || true
 git rev-parse "v$VERSION" >/dev/null 2>&1 && die "v$VERSION 태그가 이미 있습니다."
+if gh release view "v$VERSION" --repo "$REPO" >/dev/null 2>&1; then
+  die "v$VERSION 릴리스가 이미 GitHub 에 있습니다."
+fi
 
 echo "두루 $CUR → $VERSION"
 [[ -n "$DRY" ]] && echo "(미리보기 — 아무것도 바꾸지 않습니다)"

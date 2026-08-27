@@ -33,3 +33,6 @@ probe.js
 
 # 업데이트 매니페스트 — 릴리스마다 새로 만들어 올린다 (저장소엔 안 둔다)
 latest.json
+
+# 릴리스용 고정 이름 사본 — release.sh 가 만들고 지운다
+duru-setup-x64.exe
