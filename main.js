@@ -139,6 +139,7 @@ let gitPollTimer = null;
 let gitPollDelay = 5000;    // §3 — 200ms 넘으면 30000 으로 늘어난다
 let gitUserName = '';
 let gitUserEmail = '';
+let autoUpdate = true;   // 시작할 때 새 버전 확인 (설정에서 끌 수 있다)
 
 const $ = (sel) => document.querySelector(sel);
 const appEl = $('#app');
@@ -188,7 +189,7 @@ function applyI18n() {
 }
 
 async function persistSettings() {
-  try { await saveSettings(JSON.stringify({ mode: appMode, theme: themeSetting, language: getLocale(), gitUserName, gitUserEmail })); }
+  try { await saveSettings(JSON.stringify({ mode: appMode, theme: themeSetting, language: getLocale(), gitUserName, gitUserEmail, autoUpdate })); }
   catch { /* 브라우저 단독 실행(Tauri 없음) 등 — 조용히 무시 */ }
 }
 
@@ -1138,6 +1139,38 @@ function textField(label, value, onChange) {
   return wrap;
 }
 
+// 켬/끔 하나 + 곁들이 설명 + 버튼 하나 — 업데이트 항목 전용
+function toggleField(label, desc, value, onChange, actionLabel, onAction) {
+  const wrap = document.createElement('div');
+  wrap.className = 'settings-group';
+  const row = document.createElement('label');
+  row.style.display = 'flex';
+  row.style.alignItems = 'center';
+  row.style.gap = '10px';
+  row.style.cursor = 'pointer';
+  const box = document.createElement('input');
+  box.type = 'checkbox';
+  box.checked = !!value;
+  box.addEventListener('change', () => onChange(box.checked));
+  const text = document.createElement('span');
+  text.className = 'settings-group-label';
+  text.style.margin = '0';
+  text.textContent = label;
+  row.appendChild(box);
+  row.appendChild(text);
+  const note = document.createElement('p');
+  note.className = 'settings-desc';
+  note.textContent = desc;
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.textContent = actionLabel;
+  btn.addEventListener('click', () => { modalOverlay.hidden = true; onAction(); });
+  wrap.appendChild(row);
+  wrap.appendChild(note);
+  wrap.appendChild(btn);
+  return wrap;
+}
+
 function openSettings() {
   modalEl.classList.remove('wide');
   modalText.textContent = '';
@@ -1163,6 +1196,11 @@ function openSettings() {
   ], getLocale(), setLanguage));
   modalText.appendChild(textField(t('settings.gitNameLabel'), gitUserName, (v) => { gitUserName = v; persistSettings(); syncGitIdentity(); }));
   modalText.appendChild(textField(t('settings.gitEmailLabel'), gitUserEmail, (v) => { gitUserEmail = v; persistSettings(); syncGitIdentity(); }));
+  modalText.appendChild(toggleField(
+    t('settings.updateLabel'), t('settings.updateDesc'), autoUpdate,
+    (v) => { autoUpdate = v; persistSettings(); },
+    t('settings.updateCheckNow'), () => runUpdateCheck(true),
+  ));
   modalActions.innerHTML = '';
   const closeBtn = document.createElement('button');
   closeBtn.className = 'primary';
@@ -1196,6 +1234,50 @@ const toolbar = createToolbar($('#toolbar'), {
 // 표 위에 뜨는 도구막대 (3주차 T1, §2.3) — 표 밖으로 나가면 사라진다.
 const tableToolbar = createTableToolbar(editorWrap, (msg) => setStatus(msg));
 
+// ── 업데이트 (W5) ────────────────────────────────────────
+// 이 앱이 바깥으로 나가는 유일한 통로다. 문서는 절대 보내지 않고,
+// GitHub 릴리스에 새 버전이 있는지만 묻는다. 설정에서 끌 수 있다.
+async function runUpdateCheck(manual) {
+  let check;
+  try {
+    const { check: checkUpdate } = await import('@tauri-apps/plugin-updater');
+    if (manual) setStatus(t('update.checking'));
+    check = await checkUpdate();
+  } catch {
+    // 오프라인이거나 Tauri 밖(브라우저) — 자동 확인이면 조용히 넘어간다
+    if (manual) setStatus(t('update.failed'), 'bad');
+    return;
+  }
+
+  if (!check) {
+    if (manual) setStatus(t('update.none'));
+    return;
+  }
+
+  const answer = await confirmModal(
+    t('update.available', { version: check.version }),
+    ['later', 'update'],
+  );
+  if (answer !== 'update') return;
+
+  try {
+    let total = 0;
+    let got = 0;
+    await check.downloadAndInstall((e) => {
+      if (e.event === 'Started') { total = e.data.contentLength || 0; got = 0; }
+      else if (e.event === 'Progress') {
+        got += e.data.chunkLength || 0;
+        const pct = total ? Math.min(99, Math.round((got / total) * 100)) : 0;
+        setStatus(t('update.downloading', { percent: pct }));
+      } else if (e.event === 'Finished') setStatus(t('update.installing'));
+    });
+    const { relaunch } = await import('@tauri-apps/plugin-process');
+    await relaunch();
+  } catch {
+    setStatus(t('update.failed'), 'bad');
+  }
+}
+
 // ── 개발용 점검 훅 ───────────────────────────────────────
 // 파일 없이 문서를 띄워 UI 동작을 확인할 때 쓴다 (브라우저에서 Tauri 없이).
 window.__duru = {
@@ -1226,7 +1308,9 @@ async function loadModeTheme() {
   if (language !== 'ko' && language !== 'en') { language = 'ko'; dirty = true; }
   const gitName = typeof obj.gitUserName === 'string' ? obj.gitUserName : '';
   const gitEmail = typeof obj.gitUserEmail === 'string' ? obj.gitUserEmail : '';
-  return { firstRun: false, mode, theme, language, gitName, gitEmail, dirty };
+  // 없으면 켜 둔다 — 예전 설정 파일에서 올라온 경우
+  const auto = typeof obj.autoUpdate === 'boolean' ? obj.autoUpdate : true;
+  return { firstRun: false, mode, theme, language, gitName, gitEmail, autoUpdate: auto, dirty };
 }
 
 // ── 시작 ─────────────────────────────────────────────────
@@ -1239,6 +1323,7 @@ async function loadModeTheme() {
   setLocale(s.firstRun ? 'ko' : s.language);
   gitUserName = s.firstRun ? '' : s.gitName;
   gitUserEmail = s.firstRun ? '' : s.gitEmail;
+  autoUpdate = s.firstRun ? true : s.autoUpdate;
   appEl.dataset.mode = appMode;
   applyTheme();
   applyI18n();
@@ -1254,6 +1339,9 @@ async function loadModeTheme() {
     currentFolder = null;
     setStatus(t('status.lastFolderFailed'));
   }
+
+  // 화면이 다 뜬 뒤에 확인한다 — 시작을 붙잡지 않게
+  if (autoUpdate) setTimeout(() => runUpdateCheck(false), 1500);
 
   // 창 닫기(X 버튼) — Ctrl+W 와 달리 지금까지 아무 저장 확인도 없이 그냥
   // 닫혀서 편집 중이던 내용이 조용히 사라졌다. closeTab 과 같은 확인 흐름을 탄다.

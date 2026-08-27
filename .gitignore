@@ -30,3 +30,6 @@ probe.js
 
 # Claude Code 개발 서버 설정 — 로컬 도구용
 .claude/
+
+# 업데이트 매니페스트 — 릴리스마다 새로 만들어 올린다 (저장소엔 안 둔다)
+latest.json

@@ -1,6 +1,6 @@
 [package]
 name = "duru"
-version = "0.1.0"
+version = "0.2.0"
 description = "두루 — 워드처럼 편집했는데 저장은 깨끗한 마크다운"
 authors = ["knox9014"]
 license = "PolyForm-Noncommercial-1.0.0"
@@ -24,3 +24,7 @@ log = "0.4"
 tauri = { version = "2.11.3", features = [] }
 tauri-plugin-log = "2"
 tauri-plugin-dialog = "2"
+# 업데이트 확인·설치 — 데스크톱에서만 쓴다
+[target."cfg(not(any(target_os = \"android\", target_os = \"ios\")))".dependencies]
+tauri-plugin-updater = "2"
+tauri-plugin-process = "2"

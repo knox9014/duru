@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "duru",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "identifier": "com.duru.app",
   "build": {
     "frontendDist": "../dist",
@@ -33,6 +33,18 @@
     ],
     "android": {
       "debugApplicationIdSuffix": ".debug"
+    },
+    "createUpdaterArtifacts": true
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEVCMDA4NUZCNzAyQzA3MUMKUldRY0J5eHcrNFVBNjlhK0I3RmI3bFQyeUlxVXFXaEhmRGI3WjhSVisxUzdKWC9oRS9Ld1BvZVQK",
+      "endpoints": [
+        "https://github.com/knox9014/duru/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
     }
   }
 }
