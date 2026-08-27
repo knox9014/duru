@@ -56,6 +56,7 @@ Markdown Guide(Basic + Extended + Hacks) **65개 항목 전부**를 실제 변�
 | **버전** | 문서를 고친 시점을 저장하고, 뭐가 바뀌었는지 색으로 비교 |
 | **언어** | 한국어 · English (설정에서 전환) |
 | **테마** | 밝게 · 어둡게 · 시스템 설정 따라가기 |
+| **업데이트** | 새 버전이 나오면 물어보고, 승낙하면 받아서 설치 (설정에서 끌 수 있음) |
 
 ### 두 가지 모드
 
@@ -84,7 +85,7 @@ Markdown Guide(Basic + Extended + Hacks) **65개 항목 전부**를 실제 변�
 
 ## 실행하기
 
-**[Windows용 설치 파일 내려받기 →](https://github.com/knox9014/duru/releases/latest)** (v0.1.0)
+**[Windows용 설치 파일 내려받기 →](https://github.com/knox9014/duru/releases/latest)** (v0.2.0)
 
 > 코드 서명 인증서가 없어서 Windows SmartScreen 경고가 뜬다. **추가 정보 → 실행**을 눌러야 설치된다.
 

@@ -59,6 +59,7 @@ Per-item grades (creatable / editable / preserved-only) are all in [FEATURE_MAP.
 | **Versions** | Save a snapshot of a document and see what changed, side by side |
 | **Languages** | Korean · English (switchable in settings) |
 | **Themes** | Light · Dark · Follow system |
+| **Updates** | Asks when a new version is out, then downloads and installs it (can be turned off) |
 
 ### Two modes
 
@@ -88,7 +89,7 @@ a repository for you.**
 
 ## Running it
 
-**[Download for Windows →](https://github.com/knox9014/duru/releases/latest)** (v0.1.0)
+**[Download for Windows →](https://github.com/knox9014/duru/releases/latest)** (v0.2.0)
 
 > The installer is unsigned, so Windows SmartScreen will warn. Choose **More info → Run anyway**.
 
