@@ -1235,44 +1235,57 @@ const toolbar = createToolbar($('#toolbar'), {
 const tableToolbar = createTableToolbar(editorWrap, (msg) => setStatus(msg));
 
 // ── 업데이트 (W5) ────────────────────────────────────────
-// 이 앱이 바깥으로 나가는 유일한 통로다. 문서는 절대 보내지 않고,
-// GitHub 릴리스에 새 버전이 있는지만 묻는다. 설정에서 끌 수 있다.
+// 이 앱이 바깥으로 나가는 유일한 통로다. GitHub 에 최신 버전 번호만 묻고,
+// 새 버전이 있으면 내려받기 주소를 브라우저로 열어준다. 설치는 사용자가 한다
+// (앱이 내려받은 파일을 직접 실행하지 않으므로 서명 검증이 필요 없다).
+// 문서는 어떤 경우에도 보내지 않는다. 설정에서 끌 수 있다.
+const RELEASES_API = 'https://api.github.com/repos/knox9014/duru/releases/latest';
+const DOWNLOAD_URL = 'https://github.com/knox9014/duru/releases/latest';
+
+// "0.10.2" 가 "0.9.9" 보다 크다 — 문자열 비교로는 틀린다
+function isNewer(remote, local) {
+  const a = String(remote).split('.').map(Number);
+  const b = String(local).split('.').map(Number);
+  for (let i = 0; i < 3; i++) {
+    const x = a[i] || 0, y = b[i] || 0;
+    if (x !== y) return x > y;
+  }
+  return false;
+}
+
 async function runUpdateCheck(manual) {
-  let check;
+  let latest;
   try {
-    const { check: checkUpdate } = await import('@tauri-apps/plugin-updater');
     if (manual) setStatus(t('update.checking'));
-    check = await checkUpdate();
+    const res = await fetch(RELEASES_API, { headers: { Accept: 'application/vnd.github+json' } });
+    if (!res.ok) throw new Error(String(res.status));
+    const data = await res.json();
+    latest = String(data.tag_name || '').replace(/^v/, '');
+    if (!/^\d+\.\d+\.\d+$/.test(latest)) throw new Error('bad tag');
   } catch {
-    // 오프라인이거나 Tauri 밖(브라우저) — 자동 확인이면 조용히 넘어간다
+    // 오프라인·요청 제한 등 — 자동 확인이면 조용히 넘어간다
     if (manual) setStatus(t('update.failed'), 'bad');
     return;
   }
 
-  if (!check) {
+  let current;
+  try {
+    const { getVersion } = await import('@tauri-apps/api/app');
+    current = await getVersion();
+  } catch {
+    return;   // Tauri 밖(브라우저) — 확인할 대상이 없다
+  }
+
+  if (!isNewer(latest, current)) {
     if (manual) setStatus(t('update.none'));
     return;
   }
 
-  const answer = await confirmModal(
-    t('update.available', { version: check.version }),
-    ['later', 'update'],
-  );
-  if (answer !== 'update') return;
-
+  const answer = await confirmModal(t('update.available', { version: latest }), ['later', 'get']);
+  if (answer !== 'get') return;
   try {
-    let total = 0;
-    let got = 0;
-    await check.downloadAndInstall((e) => {
-      if (e.event === 'Started') { total = e.data.contentLength || 0; got = 0; }
-      else if (e.event === 'Progress') {
-        got += e.data.chunkLength || 0;
-        const pct = total ? Math.min(99, Math.round((got / total) * 100)) : 0;
-        setStatus(t('update.downloading', { percent: pct }));
-      } else if (e.event === 'Finished') setStatus(t('update.installing'));
-    });
-    const { relaunch } = await import('@tauri-apps/plugin-process');
-    await relaunch();
+    const { openUrl } = await import('@tauri-apps/plugin-opener');
+    await openUrl(DOWNLOAD_URL);
   } catch {
     setStatus(t('update.failed'), 'bad');
   }

@@ -24,7 +24,5 @@ log = "0.4"
 tauri = { version = "2.11.3", features = [] }
 tauri-plugin-log = "2"
 tauri-plugin-dialog = "2"
-# 업데이트 확인·설치 — 데스크톱에서만 쓴다
-[target."cfg(not(any(target_os = \"android\", target_os = \"ios\")))".dependencies]
-tauri-plugin-updater = "2"
-tauri-plugin-process = "2"
+# 새 버전 안내에서 내려받기 주소를 브라우저로 연다
+tauri-plugin-opener = "2"
