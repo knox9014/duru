@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>두루 (duru) — 워드처럼 편집했는데 저장은 깨끗한 마크다운</title>
+<meta name="description" content="워드처럼 편집해도 문서에 있던 것이 하나도 사라지지 않는 로컬 우선 마크다운 편집기. Edit like a word processor, save clean Markdown.">
+<link rel="icon" href="screenshots/icon.png">
+<meta property="og:title" content="두루 (duru)">
+<meta property="og:description" content="워드처럼 편집했는데 저장은 깨끗한 마크다운.">
+<meta property="og:image" content="screenshots/editor.png">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Cormorant+Garamond:wght@400;600;700&family=EB+Garamond:wght@400;500&family=Gowun+Batang:wght@400;700&family=Nanum+Brush+Script&family=Song+Myung&display=swap">
+<style>
+  :root {
+    --ink: #2a2724;
+    --body: #56504a;
+    --dim: #655e52;
+    --hanji: #efe9dc;
+    --card: #e5ddcc;
+    --panel: #f4efe3;
+    --line: #d6d0c6;
+    --accent: #c2410c;
+    --pad: clamp(22px, 6vw, 120px);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  /* 표제의 먹 번짐이 화면 밖으로 새어나가 좁은 폭에서 가로 스크롤을 만든다 */
+  html, body { overflow-x: hidden; }
+  body {
+    margin: 0;
+    background: var(--hanji);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      repeating-linear-gradient(96deg, rgba(120,105,80,.045) 0 1px, transparent 1px 7px),
+      repeating-linear-gradient(4deg, rgba(120,105,80,.03) 0 1px, transparent 1px 11px);
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { color: #8f2f09; }
+  img { max-width: 100%; display: block; }
+
+  /* 언어 — html[lang] 하나로 갈아 끼운다 */
+  html[lang="ko"] [data-lang="en"] { display: none; }
+  html[lang="en"] [data-lang="ko"] { display: none; }
+  html[lang="ko"] body { font-family: 'Gowun Batang', 'Batang', serif; }
+  html[lang="en"] body { font-family: 'EB Garamond', Georgia, serif; }
+  html[lang="ko"] .disp { font-family: 'Song Myung', 'Batang', serif; font-synthesis-weight: none; letter-spacing: -.005em; }
+  html[lang="en"] .disp { font-family: 'Cormorant Garamond', Georgia, serif; }
+  html[lang="ko"] .brush { font-family: 'Nanum Brush Script', 'Gowun Batang', cursive; }
+  html[lang="en"] .brush { font-family: 'Caveat', cursive; }
+  /* 송명체는 굵은 두께가 없다 — 큰 제목만 획을 넓혀 먹을 더 먹인다 */
+  html[lang="ko"] .ink-heavy { -webkit-text-stroke: .018em currentColor; }
+  html[lang="en"] .disp { font-weight: 600; }
+
+  .wrap { max-width: 1440px; margin: 0 auto; padding-left: var(--pad); padding-right: var(--pad); }
+
+  /* 머리말 */
+  header { padding-top: clamp(28px, 5vw, 60px); }
+  .head-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .wordmark { font-size: clamp(19px, 2.2vw, 26px); font-weight: 800; letter-spacing: .26em; }
+  html[lang="en"] .wordmark { letter-spacing: .3em; }
+  .langs { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+  .langs button {
+    font: inherit;
+    font-size: clamp(14px, 1.1vw, 16px);
+    background: none;
+    border: 0;
+    padding: 14px 8px;
+    color: var(--dim);
+    cursor: pointer;
+    position: relative;
+  }
+  .langs button:hover { color: var(--ink); }
+  .langs button[aria-pressed="true"] { color: var(--ink); }
+  .langs button[aria-pressed="true"]::after {
+    content: ""; position: absolute; left: 6px; right: 6px; bottom: 6px;
+    height: 2px; background: var(--accent);
+  }
+  .langs .sep { color: #cfc6b3; }
+  .langs button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* 표제 */
+  .hero { display: flex; gap: clamp(24px, 4vw, 56px); align-items: flex-start; position: relative; padding: clamp(30px, 5vw, 60px) 0 clamp(56px, 8vw, 120px); }
+  .wash { position: absolute; top: 0; right: -18%; width: min(720px, 70vw); aspect-ratio: 1; border-radius: 50%; pointer-events: none;
+          background: radial-gradient(circle at 50% 50%, rgba(45,74,62,.10), rgba(45,74,62,0) 62%); }
+  .rail { writing-mode: vertical-rl; font-size: 13px; color: var(--dim); letter-spacing: .5em; }
+  html[lang="en"] .rail { letter-spacing: .4em; text-transform: uppercase; }
+  .rail-col { display: flex; flex-direction: column; align-items: center; gap: 22px; padding-top: 8px; }
+  .rail-line { width: 1px; flex-grow: 1; min-height: 110px; background: linear-gradient(#c9c1b1, rgba(201,193,177,0)); }
+  .hero-body { flex-grow: 1; min-width: 0; position: relative; }
+  h1 { font-size: clamp(34px, 5.6vw, 82px); line-height: 1.3; font-weight: 800; margin: 0 0 clamp(20px, 3vw, 36px); text-wrap: pretty; }
+  html[lang="en"] h1 { line-height: 1.16; letter-spacing: -.015em; }
+  .mark-hl { position: relative; white-space: nowrap; }
+  .mark-hl::after { content: ""; position: absolute; left: -2px; right: -2px; bottom: .12em; height: .17em; background: rgba(194,65,12,.16); z-index: -1; }
+  .lead { font-size: clamp(17px, 1.6vw, 22px); line-height: 1.9; color: var(--body); margin: 0 0 10px; max-width: 40em; }
+  .sub { font-size: clamp(15px, 1.2vw, 18px); line-height: 1.85; color: var(--dim); margin: 0 0 clamp(28px, 4vw, 48px); }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .82em; background: #e4ddcd; padding: 2px 7px; border-radius: 3px; }
+  .cta-row { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+  .btn { display: inline-flex; align-items: center; gap: 10px; background: var(--ink); color: #f2ede1; padding: 16px 32px; font-size: clamp(15px, 1.2vw, 18px); letter-spacing: .03em; min-height: 52px; }
+  .btn:hover { background: #16130f; color: #fff; }
+  .seal { width: clamp(54px, 7vw, 96px); aspect-ratio: 1; background: var(--accent); transform: rotate(-4deg); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .seal span { writing-mode: vertical-rl; font-family: 'Song Myung', 'Batang', serif; font-synthesis-weight: none; font-size: clamp(17px, 2.4vw, 30px); font-weight: 800; color: #f6ece1; letter-spacing: .15em; }
+
+  /* 약속 */
+  .promise { background: var(--ink); color: #ece6da; }
+  .promise .wrap { padding-top: clamp(52px, 8vw, 108px); padding-bottom: clamp(56px, 8vw, 116px); }
+  .promise-row { display: flex; gap: clamp(30px, 6vw, 96px); align-items: flex-start; flex-wrap: wrap; }
+  .eyebrow { font-size: clamp(12px, 1vw, 15px); letter-spacing: .4em; color: #a29a8c; margin-bottom: clamp(18px, 3vw, 34px); }
+  html[lang="en"] .eyebrow { text-transform: uppercase; }
+  .promise-txt { flex: 1 1 460px; }
+  .promise-txt p.big { font-size: clamp(25px, 3.4vw, 50px); line-height: 1.5; font-weight: 800; margin: 0 0 clamp(20px, 3vw, 40px); text-wrap: pretty; }
+  .promise-txt p.small { font-size: clamp(16px, 1.3vw, 19px); line-height: 2; color: #b8b0a3; margin: 0; max-width: 40em; }
+  .stats { display: flex; gap: clamp(26px, 4vw, 56px); padding-top: 12px; }
+  .stat b { display: block; font-size: clamp(46px, 5vw, 76px); line-height: 1; font-weight: 800; }
+  .stat span { display: block; font-size: clamp(14px, 1.1vw, 16px); color: #a29a8c; margin-top: 12px; line-height: 1.6; }
+  .stat-div { width: 1px; background: #4a453f; }
+
+  /* 화면 */
+  .shot-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: clamp(24px, 3vw, 44px); flex-wrap: wrap; }
+  h2 { font-size: clamp(25px, 3vw, 44px); line-height: 1.3; font-weight: 800; margin: 0; }
+  .shot-note { font-size: clamp(15px, 1.2vw, 17px); color: var(--dim); margin: 0; max-width: 34em; line-height: 1.85; }
+  .shot-frame { padding: clamp(9px, 1.2vw, 18px); background: #e2dbca; box-shadow: 0 18px 44px rgba(60,50,35,.14); }
+  .sec { padding-top: clamp(48px, 7vw, 112px); padding-bottom: clamp(40px, 6vw, 96px); }
+
+  .brush-rule { padding: 18px 0 6px; }
+  .brush-rule svg { width: clamp(200px, 30vw, 420px); height: auto; }
+
+  /* 기능 */
+  .feats { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: clamp(28px, 4vw, 56px) clamp(28px, 4vw, 64px); }
+  .feat h3 { font-size: clamp(19px, 1.8vw, 25px); font-weight: 700; margin: 16px 0 10px; }
+  .feat p { font-size: clamp(15px, 1.2vw, 17px); line-height: 1.9; color: var(--body); margin: 0; }
+
+  /* 버전 */
+  .ver { background: var(--card); }
+  .ver .wrap { padding-top: clamp(48px, 7vw, 104px); padding-bottom: clamp(48px, 7vw, 104px); }
+  .ver-row { display: flex; gap: clamp(28px, 6vw, 96px); align-items: flex-start; flex-wrap: wrap; }
+  .ver-txt { flex: 1 1 420px; }
+  .ver-txt h2 { margin-bottom: clamp(18px, 2vw, 32px); }
+  .ver-txt p { font-size: clamp(16px, 1.3vw, 19px); line-height: 2; color: var(--body); margin: 0 0 20px; }
+  .ver-txt p.fine { font-size: clamp(14px, 1.1vw, 17px); color: var(--dim); margin: 0; }
+  .chips { flex: 1 1 320px; display: flex; flex-direction: column; gap: 16px; }
+  .chip { background: var(--panel); border: 1px solid #cfc6b3; padding: 18px 22px; }
+  .chip b { display: block; font-size: clamp(17px, 1.6vw, 23px); font-weight: 700; margin-bottom: 6px; }
+  .chip span { font-size: clamp(14px, 1.1vw, 16px); color: #6b655c; }
+
+  /* 만든 방식 */
+  .built-row { display: flex; gap: clamp(28px, 6vw, 96px); align-items: flex-start; flex-wrap: wrap; }
+  .built-head { flex: 0 1 300px; }
+  .built-body { flex: 1 1 460px; }
+  .built-body p { font-size: clamp(16px, 1.3vw, 19px); line-height: 2; color: var(--body); margin: 0 0 22px; }
+  .built-body p.fine { font-size: clamp(14px, 1.1vw, 17px); color: var(--dim); margin: 0 0 32px; }
+  .grid2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  .grid2 div { background: var(--hanji); padding: 14px 18px; font-size: clamp(14px, 1.1vw, 16px); }
+  .grid2 .k { color: var(--dim); }
+
+  /* 맺음 */
+  footer { background: var(--ink); color: #ece6da; }
+  footer .wrap { padding-top: clamp(44px, 6vw, 92px); padding-bottom: clamp(40px, 5vw, 76px); }
+  .foot-row { display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; flex-wrap: wrap; }
+  .foot-row p { font-size: clamp(15px, 1.2vw, 17px); line-height: 1.9; color: #a29a8c; margin: 0; }
+  .btn-ghost { display: inline-flex; align-items: center; gap: 10px; border: 1px solid #56504a; color: #ece6da; padding: 14px 28px; font-size: clamp(15px, 1.2vw, 17px); min-height: 50px; }
+  .btn-ghost:hover { border-color: #ece6da; color: #fff; }
+
+  @media (max-width: 1100px) { .rail-col { display: none; } }
+  @media (max-width: 860px) {
+    .hero { flex-direction: row; }
+    .btn, .btn-ghost { width: 100%; justify-content: center; }
+    .cta-row { align-items: stretch; }
+    .cta-row .note { text-align: center; width: 100%; }
+  }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+
+<header class="wrap">
+  <div class="head-row">
+    <img src="screenshots/icon.png" alt="두루" width="60" height="60" style="width: clamp(40px, 5vw, 60px); height: auto;">
+    <div class="wordmark disp"><span data-lang="ko">두루</span><span data-lang="en">DURU</span></div>
+    <nav class="langs" aria-label="언어 선택 / Language">
+      <button type="button" class="disp" data-set-lang="ko" aria-pressed="true">한국어</button>
+      <span class="sep" aria-hidden="true">·</span>
+      <button type="button" class="disp" data-set-lang="en" aria-pressed="false">English</button>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="hero">
+    <div class="wash" aria-hidden="true"></div>
+
+    <div class="rail-col">
+      <div class="rail disp"><span data-lang="ko">마크다운 문서 편집기</span><span data-lang="en">Markdown document editor</span></div>
+      <div class="rail-line"></div>
+    </div>
+
+    <div class="hero-body">
+      <h1 class="disp ink-heavy">
+        <span data-lang="ko">워드처럼 편집했는데<br>저장은 <span class="mark-hl">깨끗한 마크다운</span></span>
+        <span data-lang="en">Edit like a word processor.<br>Save <span class="mark-hl">clean Markdown</span>.</span>
+      </h1>
+
+      <p class="lead">
+        <span data-lang="ko">화면에는 <code>**</code> 도 <code>|</code> 도 보이지 않고, 저장되는 파일은 사람이 읽을 수 있는 평범한 마크다운입니다.</span>
+        <span data-lang="en">No <code>**</code> or <code>|</code> on screen, and the file on disk stays ordinary, human-readable Markdown.</span>
+      </p>
+      <p class="sub">
+        <span data-lang="ko">내 컴퓨터에만 저장됩니다 · 계정도 서버도 없습니다</span>
+        <span data-lang="en">Stored on your own machine · No account, no server</span>
+      </p>
+
+      <div class="cta-row">
+        <a class="btn" href="https://github.com/knox9014/duru">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.1.68-.22.68-.49l-.01-1.72c-2.78.62-3.37-1.37-3.37-1.37-.46-1.19-1.11-1.5-1.11-1.5-.91-.64.07-.63.07-.63 1 .07 1.53 1.06 1.53 1.06.89 1.57 2.34 1.12 2.91.86.09-.66.35-1.12.63-1.38-2.22-.26-4.56-1.14-4.56-5.06 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.71 0 0 .84-.28 2.75 1.05a9.3 9.3 0 0 1 5 0c1.91-1.33 2.75-1.05 2.75-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.63 1.03 2.75 0 3.93-2.34 4.8-4.57 5.05.36.32.68.94.68 1.9l-.01 2.82c0 .27.18.6.69.49A10.06 10.06 0 0 0 22 12.25C22 6.58 17.52 2 12 2z"/></svg>
+          <span data-lang="ko">저장소 보기</span><span data-lang="en">View the repository</span>
+        </a>
+        <span class="note sub" style="margin: 0;">
+          <span data-lang="ko">Windows · 소스에서 직접 빌드</span>
+          <span data-lang="en">Windows · build from source</span>
+        </span>
+      </div>
+    </div>
+
+    <div class="seal" aria-hidden="true"><span>두루</span></div>
+  </section>
+</div>
+
+<section class="promise">
+  <div class="wrap">
+    <div class="promise-row">
+      <div class="promise-txt">
+        <div class="eyebrow disp"><span data-lang="ko">단 하나의 약속</span><span data-lang="en">One promise</span></div>
+        <p class="big disp ink-heavy">
+          <span data-lang="ko">워드처럼 편집해도, 문서에 있던 것이<br>하나도 사라지지 않는다</span>
+          <span data-lang="en">Edit it like a word processor, and nothing that was in the document disappears.</span>
+        </p>
+        <p class="small">
+          <span data-lang="ko">위지윅 편집기는 자기가 모르는 문법을 조용히 지웁니다. 화면에서 안 보였으니 사용자는 알아채지도 못합니다. 두루는 다루지 못하는 문법도 지우지 않고 얼려서 보존한 뒤, 저장할 때 원래 글자를 그대로 되돌려 씁니다.</span>
+          <span data-lang="en">A WYSIWYG editor silently deletes the syntax it doesn't understand. The content was never visible on screen, so you never notice it's gone. duru freezes what it can't manipulate, preserves it verbatim, and writes it back byte-for-byte on save.</span>
+        </p>
+      </div>
+      <div class="stats">
+        <div class="stat">
+          <b class="disp ink-heavy">65</b>
+          <span><span data-lang="ko">Markdown Guide<br>전 항목 검사</span><span data-lang="en">items across the<br>Markdown Guide</span></span>
+        </div>
+        <div class="stat-div"></div>
+        <div class="stat">
+          <b class="disp ink-heavy" style="color: #e8834f;">0</b>
+          <span><span data-lang="ko">왕복 후<br>소실 항목</span><span data-lang="en">lost after a<br>round trip</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wrap sec">
+  <div class="shot-head">
+    <h2 class="disp ink-heavy">
+      <span data-lang="ko">기호가 아니라 문서를 봅니다</span>
+      <span data-lang="en">You see the document, not the syntax</span>
+    </h2>
+    <p class="shot-note">
+      <span data-lang="ko">표는 칸을 눌러 채우고, 할 일은 네모를 눌러 지웁니다. 마크다운을 몰라도 손이 먼저 압니다.</span>
+      <span data-lang="en">Click a cell and type. Click a checkbox to tick it. Your hands know it before you learn Markdown.</span>
+    </p>
+  </div>
+  <div class="shot-frame">
+    <img src="screenshots/editor.png" alt="두루 편집 화면 / duru editing screen" width="1453" height="865">
+  </div>
+</div>
+
+<div class="wrap brush-rule">
+  <svg viewBox="0 0 420 26" aria-hidden="true"><path d="M2 17 C 60 9, 118 21, 176 13 C 234 5, 292 19, 350 11 C 378 7, 400 10, 418 7 C 400 15, 376 13, 350 17 C 292 25, 234 11, 176 19 C 118 27, 60 15, 2 17 Z" fill="#2a2724" opacity=".72"></path></svg>
+</div>
+
+<div class="wrap sec" style="padding-top: 12px;">
+  <h2 class="disp ink-heavy" style="margin-bottom: clamp(28px, 4vw, 56px);">
+    <span data-lang="ko">할 수 있는 것</span><span data-lang="en">What it does</span>
+  </h2>
+
+  <div class="feats">
+    <div class="feat">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c2410c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16"></rect><path d="M3 10h18M3 15h18M9 4v16M15 4v16"></path></svg>
+      <h3 class="disp"><span data-lang="ko">표</span><span data-lang="en">Tables</span></h3>
+      <p><span data-lang="ko">툴바에서 넣고, 칸을 눌러 입력합니다. 행·열을 더하고 지우고, 방향키로 칸 사이를 옮겨 다닙니다.</span>
+         <span data-lang="en">Insert from the toolbar, click a cell and type. Add and remove rows and columns; move between cells with the arrow keys.</span></p>
+    </div>
+    <div class="feat">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c2410c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h9a4 4 0 0 1 0 8H4zM4 14h10a4 4 0 0 1 0 8H4z"></path></svg>
+      <h3 class="disp"><span data-lang="ko">서식</span><span data-lang="en">Formatting</span></h3>
+      <p><span data-lang="ko">굵게·기울임·밑줄·취소선. 손이 기억하는 그 단축키 그대로 씁니다.</span>
+         <span data-lang="en">Bold, italic, underline, strikethrough — on the shortcuts your hands already know.</span></p>
+    </div>
+    <div class="feat">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c2410c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="7" height="7"></rect><path d="M4.6 7.4 6 8.8 8.6 5.9M13 6h8M13 12h8M13 18h8M4 15h4M6 13v4"></path></svg>
+      <h3 class="disp"><span data-lang="ko">목록</span><span data-lang="en">Lists</span></h3>
+      <p><span data-lang="ko">글머리표·번호·할 일. Tab으로 들여쓰고, 체크박스는 눌러서 지웁니다.</span>
+         <span data-lang="en">Bullets, numbers and to-dos. Tab to nest; checkboxes tick on click.</span></p>
+    </div>
+    <div class="feat">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c2410c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="3" width="12" height="14"></rect><path d="M16 17v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1h3"></path></svg>
+      <h3 class="disp"><span data-lang="ko">붙여넣기</span><span data-lang="en">Paste</span></h3>
+      <p><span data-lang="ko">워드·웹·구글 문서의 서식을 살려서 붙입니다. 마크다운으로 해석해 붙이는 길도 따로 있습니다.</span>
+         <span data-lang="en">Keeps formatting from Word, the web and Google Docs. A second shortcut parses the clipboard as Markdown instead.</span></p>
+    </div>
+    <div class="feat">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c2410c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14"></rect><circle cx="8.5" cy="10" r="1.6"></circle><path d="m3 16 5-4 4 3 3-2 6 5"></path></svg>
+      <h3 class="disp"><span data-lang="ko">이미지</span><span data-lang="en">Images</span></h3>
+      <p><span data-lang="ko">끌어다 놓으면 문서 옆 폴더로 복사하고 상대경로로 걸어 둡니다. 문서를 옮겨도 같이 갑니다.</span>
+         <span data-lang="en">Drop a file in and it is copied beside the document, linked by relative path. Move the folder and it still resolves.</span></p>
+    </div>
+    <div class="feat">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c2410c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9"></path><path d="M12 7v5l3 2M21 3v5h-5"></path></svg>
+      <h3 class="disp"><span data-lang="ko">버전</span><span data-lang="en">Versions</span></h3>
+      <p><span data-lang="ko">고친 시점을 남기고, 무엇이 바뀌었는지 색으로 봅니다. Git을 몰라도 됩니다.</span>
+         <span data-lang="en">Keep a snapshot of a document and see what changed, in colour. No Git knowledge required.</span></p>
+    </div>
+  </div>
+</div>
+
+<section class="ver">
+  <div class="wrap">
+    <div class="ver-row">
+      <div class="ver-txt">
+        <div class="eyebrow disp" style="color: var(--dim);"><span data-lang="ko">버전 관리</span><span data-lang="en">Version control</span></div>
+        <h2 class="disp ink-heavy">
+          <span data-lang="ko"><span class="brush" style="font-size: 1.3em; color: var(--accent);">commit</span> 이라는 말은<br>화면 어디에도 없습니다</span>
+          <span data-lang="en">The word <span class="brush" style="font-size: 1.3em; color: var(--accent);">commit</span><br>appears nowhere</span>
+        </h2>
+        <p>
+          <span data-lang="ko">폴더가 이미 Git 저장소라면 아래에 막대가 하나 나타납니다. 거기 적힌 말은 셋뿐입니다.</span>
+          <span data-lang="en">If the folder is already a Git repository, a bar appears along the bottom. It says three things, and only three.</span>
+        </p>
+        <p class="fine">
+          <span data-lang="ko">문서와 그림만 다룹니다. 저장소를 새로 만드는 일은 하지 않습니다.</span>
+          <span data-lang="en">Only documents and images are ever touched. duru never creates a repository for you.</span>
+        </p>
+      </div>
+      <div class="chips">
+        <div class="chip">
+          <b class="disp"><span data-lang="ko">버전 저장</span><span data-lang="en">Save version</span></b>
+          <span><span data-lang="ko">지금 상태를 남긴다</span><span data-lang="en">Record the current state</span></span>
+        </div>
+        <div class="chip">
+          <b class="disp"><span data-lang="ko">기록</span><span data-lang="en">History</span></b>
+          <span><span data-lang="ko">이 문서가 어떻게 바뀌어 왔는지</span><span data-lang="en">How this document has changed</span></span>
+        </div>
+        <div class="chip">
+          <b class="disp"><span data-lang="ko">바뀐 문서 3개</span><span data-lang="en">3 documents changed</span></b>
+          <span><span data-lang="ko">마지막 저장 이후 손댄 문서들</span><span data-lang="en">What you've touched since the last save</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wrap sec">
+  <div class="built-row">
+    <div class="built-head">
+      <h2 class="disp ink-heavy"><span data-lang="ko">한 번만<br>다시 씁니다</span><span data-lang="en">Rewritten<br>exactly once</span></h2>
+    </div>
+    <div class="built-body">
+      <p>
+        <span data-lang="ko">위지윅 편집기는 저장할 때 문서를 제 방식으로 다시 씁니다. 그대로 두면 한 글자만 고쳐도 파일 전체가 바뀐 것으로 기록됩니다. 두루는 <strong>처음 열 때 한 번</strong> 전체를 정돈합니다. 그 다음부터는 직렬화가 결정론적이라, 손대지 않은 곳은 바이트까지 똑같이 다시 나옵니다.</span>
+        <span data-lang="en">WYSIWYG editors rewrite a document in their own style on save, so changing one word marks the whole file as modified. duru normalizes the document <strong>once, when it is first opened</strong>. After that, serialization is deterministic: untouched regions are reproduced byte-for-byte.</span>
+      </p>
+      <p class="fine">
+        <span data-lang="ko">코드 포매터를 처음 들일 때 첫 커밋만 크고 그 뒤가 조용한 것과 같은 이치입니다.</span>
+        <span data-lang="en">The same shape as introducing a code formatter — one large first commit, quiet ones after.</span>
+      </p>
+      <div class="grid2">
+        <div class="k"><span data-lang="ko">껍데기</span><span data-lang="en">Shell</span></div><div>Tauri 2 · Rust</div>
+        <div class="k"><span data-lang="ko">화면</span><span data-lang="en">UI</span></div><div><span data-lang="ko">바닐라 JS — 프레임워크 없음</span><span data-lang="en">Vanilla JS — no framework</span></div>
+        <div class="k"><span data-lang="ko">글자 입력</span><span data-lang="en">Text input</span></div><div>ProseMirror</div>
+        <div class="k"><span data-lang="ko">마크다운 해석</span><span data-lang="en">Markdown parsing</span></div><div>remark / unified</div>
+        <div class="k"><span data-lang="ko">그 사이 변환</span><span data-lang="en">The layer between</span></div><div><span data-lang="ko">직접 구현</span><span data-lang="en">Written from scratch</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-row">
+      <div>
+        <div class="head-row" style="margin-bottom: 22px;">
+          <img src="screenshots/icon.png" alt="" width="42" height="42" style="width: 42px; height: auto;">
+          <div class="wordmark disp" style="font-size: 21px;"><span data-lang="ko">두루</span><span data-lang="en">DURU</span></div>
+        </div>
+        <p>
+          <span data-lang="ko">워드처럼 편집했는데 저장은 깨끗한 마크다운.<br>비상업적 용도로 자유롭게 쓰고 고칠 수 있습니다 — PolyForm Noncommercial 1.0.0</span>
+          <span data-lang="en">Edit like a word processor. Save clean Markdown.<br>Free to use and modify for any noncommercial purpose — PolyForm Noncommercial 1.0.0</span>
+        </p>
+      </div>
+      <a class="btn-ghost" href="https://github.com/knox9014/duru">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.1.68-.22.68-.49l-.01-1.72c-2.78.62-3.37-1.37-3.37-1.37-.46-1.19-1.11-1.5-1.11-1.5-.91-.64.07-.63.07-.63 1 .07 1.53 1.06 1.53 1.06.89 1.57 2.34 1.12 2.91.86.09-.66.35-1.12.63-1.38-2.22-.26-4.56-1.14-4.56-5.06 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.71 0 0 .84-.28 2.75 1.05a9.3 9.3 0 0 1 5 0c1.91-1.33 2.75-1.05 2.75-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.63 1.03 2.75 0 3.93-2.34 4.8-4.57 5.05.36.32.68.94.68 1.9l-.01 2.82c0 .27.18.6.69.49A10.06 10.06 0 0 0 22 12.25C22 6.58 17.52 2 12 2z"/></svg>
+        github.com/knox9014/duru
+      </a>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var KEY = 'duru-site-lang';
+  var root = document.documentElement;
+
+  function apply(lang) {
+    root.lang = lang;
+    document.title = lang === 'en'
+      ? 'duru — Edit like a word processor, save clean Markdown'
+      : '두루 (duru) — 워드처럼 편집했는데 저장은 깨끗한 마크다운';
+    var btns = document.querySelectorAll('[data-set-lang]');
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].setAttribute('aria-pressed', String(btns[i].getAttribute('data-set-lang') === lang));
+    }
+    try { localStorage.setItem(KEY, lang); } catch (e) { /* 사생활 보호 모드 등 — 무시 */ }
+  }
+
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) { saved = null; }
+  var initial = saved === 'ko' || saved === 'en'
+    ? saved
+    : ((navigator.language || 'ko').toLowerCase().indexOf('ko') === 0 ? 'ko' : 'en');
+  apply(initial);
+
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('[data-set-lang]') : null;
+    if (b) apply(b.getAttribute('data-set-lang'));
+  });
+})();
+</script>
+
+</body>
+</html>
