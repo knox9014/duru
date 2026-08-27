@@ -98,6 +98,13 @@ npx tauri build --no-bundle   # build the executable only
 ```
 
 The binary lands at `src-tauri/target/release/duru.exe`.
+Drop `--no-bundle` and you also get installers (MSI and NSIS) under `bundle/`.
+
+Rust tests: `cd src-tauri && cargo test`.
+
+> `npm run check` in `package.json` is the author's local-only regression run. The fixture
+> documents and check scripts it depends on aren't published, so it won't work from a clone.
+> The measured results live in [FEATURE_MAP.md](FEATURE_MAP.md).
 
 Developed and tested on Windows 11. Tauri should build on macOS and Linux too, but
 that hasn't been verified.

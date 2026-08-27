@@ -94,6 +94,13 @@ npx tauri build --no-bundle   # 실행 파일만 빌드
 ```
 
 빌드 결과는 `src-tauri/target/release/duru.exe`.
+`--no-bundle` 을 빼면 `bundle/` 아래에 설치 파일(MSI·NSIS)까지 만든다.
+
+Rust 쪽 시험은 `cd src-tauri && cargo test`.
+
+> `package.json` 의 `npm run check` 는 저자 로컬 전용이다. 이 명령이 쓰는 회귀 시험지와
+> 검사 스크립트는 저장소에 넣지 않아서, 클론한 환경에서는 동작하지 않는다.
+> 측정 결과는 [FEATURE_MAP.md](FEATURE_MAP.md) 에 정리돼 있다.
 
 Windows 11에서 개발·테스트했다. Tauri 특성상 macOS·Linux에서도 빌드는 되겠지만 확인하지 않았다.
 
