@@ -33,6 +33,9 @@
     ],
     "android": {
       "debugApplicationIdSuffix": ".debug"
-    }
+    },
+    "publisher": "knox9014",
+    "copyright": "Copyright (c) 2026 knox9014",
+    "shortDescription": "워드처럼 편집했는데 저장은 깨끗한 마크다운"
   }
 }
